@@ -1,5 +1,7 @@
 # Variance-Based Sensitivity Analysis for Hidden Confounding
 
+[中文说明](README.zh-CN.md) | English
+
 This repository contains a reproducible R/Python project on **variance-based sensitivity analysis (VBM)** for hidden confounding. The main application studies the NHANES fish/shellfish consumption and blood-mercury example discussed in Huang & Pimentel (Biometrika, 2025).
 
 The guiding question is:
@@ -162,6 +164,23 @@ The repository is designed so that a clean checkout can regenerate tables and fi
 ```r
 source("main.R")
 ```
+
+---
+
+## GitHub notes
+
+This repository intentionally ignores local workspace, IDE, cache, and generated output files. Before pushing, check:
+
+```bash
+git status
+git ls-files
+```
+
+Do not commit `.RData`, `.Rhistory`, `.Rproj.user/`, `.vscode/`, `__pycache__/`, private data, or generated files under `output/`.
+
+Recommended repository description:
+
+> Reproducible R/Python project for variance-based sensitivity analysis of hidden confounding, with NHANES replication and VBM/MSM/RGM extensions.
 
 ---
 
