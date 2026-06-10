@@ -10,6 +10,12 @@ config <- list(
   output_tables_dir = "output/tables",
   clear_output_before_run = TRUE,
 
+  # Main-program enhanced plotting.
+  # Enabled by default so source("main.R") automatically generates
+  # polished enhanced versions of the base NHANES figures.
+  run_main_enhanced_plots = TRUE,
+  main_enhanced_output_dir = "output/figures_enhanced",
+
   # Reproducibility
   seed = 2024,
 
@@ -125,7 +131,7 @@ config <- list(
     "race"
   ),
 
-  # Version10 extension runner controls.
+  # Version10.2 extension runner controls.
   # All four refactored extensions are enabled by default, so source("main.R")
   # runs the base NHANES workflow and then the four extension workflows.
   # Any individual extension can be disabled temporarily with:
@@ -138,7 +144,7 @@ config <- list(
   run_extension_04_rgm_vbm_msm = TRUE,
 
   # Legacy integrated RGM block in main.R is kept for backward compatibility
-  # but is no longer the default Version10 path. The fourth refactored
+  # but is no longer the default Version10.2 path. The fourth refactored
   # extension below now owns the RGM/VBM/MSM comparison output.
   run_rgm_extension = FALSE,
   rgm_clear_output_before_run = TRUE,

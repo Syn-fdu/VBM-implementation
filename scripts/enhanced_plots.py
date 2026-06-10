@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Enhanced plotting script for the bootstrap Figure 1 and four-model Figure 3 outputs.
+Enhanced plotting script for the main NHANES VBM/MSM workflow.
 
 Layout rules:
 1. Figure 1 benchmark labels are centered above their vertical reference lines.
@@ -15,6 +15,9 @@ Usage:
     python scripts/enhanced_plots.py \
         --input output/tables \
         --output output/figures_enhanced
+
+In version10.2 this script is launched automatically by main.R when
+config$run_main_enhanced_plots is TRUE.
 """
 
 from __future__ import annotations
@@ -34,6 +37,13 @@ plt.rcParams["font.size"] = 12
 # ============================================================
 # Utilities
 # ============================================================
+def required_files_present(input_dir: Path, names: list[str], figure_label: str) -> bool:
+    missing = [name for name in names if not (input_dir / name).exists()]
+    if missing:
+        print(f"Skipping {figure_label}; missing required file(s): {', '.join(missing)}")
+        return False
+    return True
+
 def clear_output_dir(output_dir: Path) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -155,6 +165,13 @@ def assign_benchmark_label_heights(bmk: pd.DataFrame) -> pd.DataFrame:
 # Figure 1
 # ============================================================
 def make_figure1(input_dir: Path, output_dir: Path) -> None:
+    if not required_files_present(input_dir, [
+        "plot_vbm_bootstrap_curve.csv",
+        "final_results_vs_paper.csv",
+        "plot_covariate_benchmark_vbm_msm.csv",
+    ], "main enhanced Figure 1"):
+        return
+
     bootstrap = read_csv(input_dir, "plot_vbm_bootstrap_curve.csv")
     final_results = read_csv(input_dir, "final_results_vs_paper.csv")
     benchmark = read_csv(input_dir, "plot_covariate_benchmark_vbm_msm.csv")
@@ -381,6 +398,9 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
 # Figure 3
 # ============================================================
 def make_figure3(input_dir: Path, output_dir: Path) -> None:
+    if not required_files_present(input_dir, ["plot_covariate_benchmark_vbm_msm.csv"], "main enhanced Figure 3"):
+        return
+
     benchmark = read_csv(input_dir, "plot_covariate_benchmark_vbm_msm.csv")
 
     label_map = {

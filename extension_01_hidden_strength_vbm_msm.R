@@ -3,7 +3,7 @@
 # Hidden-strength VBM/MSM comparison
 # ============================================================
 
-# This is root-level Version10.1 extension 01; it can be run by main.R or independently.
+# This is root-level Version10.2 extension 01; it can be run by main.R or independently.
 # Recommended run:
 #   source("extension_01_hidden_strength_vbm_msm.R")
 # or:

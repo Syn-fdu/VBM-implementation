@@ -1,0 +1,48 @@
+# R workspace and history
+.RData
+.Rhistory
+.Rapp.history
+.Ruserdata
+.Rproj.user/
+
+# Local environment and IDE files
+.Renviron
+.Rprofile
+.vscode/
+.idea/
+
+# Python cache / environments
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+env/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+__MACOSX/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+*.bak
+.cache/
+
+# Generated analysis outputs
+# Regenerate with: source("main.R")
+output/**/*.csv
+output/**/*.png
+output/**/*.jpg
+output/**/*.jpeg
+output/**/*.pdf
+output/**/*.svg
+output/**/*.html
+!output/**/.gitkeep
+
+# Private or large raw data
+data/raw/
+data/private/

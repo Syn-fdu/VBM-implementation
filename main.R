@@ -6,7 +6,7 @@
 # ------------------------------------------------------------
 # Robust project-root-aware source loading
 # ------------------------------------------------------------
-# Version10.1 fix:
+# Version10.2 fix:
 #   - works when the zip was extracted with or without an outer folder;
 #   - works when source("path/to/main.R") is called from a parent folder;
 #   - searches child folders such as final_project_version10/ if needed.
@@ -107,7 +107,7 @@ source_project_file <- function(relative_path) {
       paste0(
         "Required source file missing: ", path,
         "\nProject root detected as: ", .project_dir,
-        "\nPlease make sure the full version10.1 archive was extracted, not only main.R."
+        "\nPlease make sure the full version10.2 archive was extracted, not only main.R."
       )
     )
   }
@@ -671,9 +671,33 @@ if (isTRUE(config$run_rgm_extension)) {
 }
 
 
+# ------------------------------------------------------------
+# Main-program enhanced plots
+# ------------------------------------------------------------
+# This is the enhancedplot auto-launch for the base NHANES main program.
+# It is separate from the four extension enhancedplot scripts.
+if (isTRUE(config$run_main_enhanced_plots)) {
+  main_enhanced_output_dir <- config$main_enhanced_output_dir
+  if (is.null(main_enhanced_output_dir) || !nzchar(main_enhanced_output_dir)) {
+    main_enhanced_output_dir <- file.path("output", "figures_enhanced")
+  }
+
+  v10_run_python_plot(
+    project_dir = .project_dir,
+    script_relative_path = "scripts/enhanced_plots.py",
+    input_dir = config$output_tables_dir,
+    output_dir = main_enhanced_output_dir,
+    label = "Main-program enhanced plots"
+  )
+} else {
+  cat("Main-program enhanced plots are disabled by config$run_main_enhanced_plots.\n")
+}
+
+
+
 
 # ------------------------------------------------------------
-# Version10.1 root-level extension scripts
+# Version10.2 root-level extension scripts
 # ------------------------------------------------------------
 # No extensions/ folder is required.  main.R directly sources the four
 # standalone scripts below.  Each script can also be run independently from
@@ -697,11 +721,11 @@ run_v10_standalone_extension <- function(flag_name, script_name, extension_id, e
   )
 
   if (enabled) {
-    cat("\n========== Running Version10.1 extension: ", extension_label, " ==========\n", sep = "")
+    cat("\n========== Running Version10.2 extension: ", extension_label, " ==========\n", sep = "")
     .v10_project_dir_from_runner <<- .project_dir
     source_project_file(script_name)
   } else {
-    cat("Skipping Version10.1 extension ", extension_id, " because ", flag_name, " is FALSE.\n", sep = "")
+    cat("Skipping Version10.2 extension ", extension_id, " because ", flag_name, " is FALSE.\n", sep = "")
   }
 
   row
@@ -743,10 +767,10 @@ if (isTRUE(config$run_version10_extensions)) {
     file.path(version10_index_dir, "version10_extension_index.csv"),
     row.names = FALSE
   )
-  cat("Version10.1 extension index saved to: ",
+  cat("Version10.2 extension index saved to: ",
       file.path(version10_index_dir, "version10_extension_index.csv"), "\n", sep = "")
 } else {
-  cat("Version10.1 extensions are disabled by config$run_version10_extensions.\n")
+  cat("Version10.2 extensions are disabled by config$run_version10_extensions.\n")
 }
 
 
