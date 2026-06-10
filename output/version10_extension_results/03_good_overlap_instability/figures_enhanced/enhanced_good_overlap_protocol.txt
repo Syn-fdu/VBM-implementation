@@ -1,0 +1,7 @@
+Version10 good-overlap diagnostic protocol
+================================================
+1. Report Var(w_obs | Z=0) [var_observed_control]
+2. Report control-weight CV [weight_cv_control]
+3. Report original variance ratio Var(w_ideal)/Var(w_obs) [original_variance_ratio]
+4. Label VBM R2 unstable when the denominator is near zero or the ratio is extreme [flag_good_overlap_instability]
+5. Use stabilized ratio only as supplementary numerical evidence [stabilized_variance_ratio]

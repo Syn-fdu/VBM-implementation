@@ -1,0 +1,5 @@
+"extension_id","extension_label","enabled_by_default","enabled_this_run","entry_point","output_dir"
+"01_hidden_strength_vbm_msm","Hidden-strength VBM/MSM comparison",TRUE,TRUE,"extension_01_hidden_strength_vbm_msm.R","output/version10_extension_results/01_hidden_strength_vbm_msm"
+"02_vbm_ps_misspecification","VBM under PS model misspecification",TRUE,TRUE,"extension_02_vbm_ps_misspecification.R","output/version10_extension_results/02_vbm_ps_misspecification"
+"03_good_overlap_instability","Good-overlap denominator instability",TRUE,TRUE,"extension_03_good_overlap_instability.R","output/version10_extension_results/03_good_overlap_instability"
+"04_rgm_vbm_msm","RGM model and VBM/MSM comparison",TRUE,TRUE,"extension_04_rgm_vbm_msm.R","output/version10_extension_results/04_rgm_vbm_msm"

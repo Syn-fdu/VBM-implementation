@@ -1,0 +1,50 @@
+{
+  "version": "10.1-folder-layout",
+  "base": "final_project_version9.3",
+  "created_for": "refactored four-extension workflow",
+  "default_behavior": "source('main.R') runs the base analysis and then directly sources four root-level extension_*.R scripts.",
+  "patch": "Uses outer version10.1 folder, removes the physical extensions/ source folder, and calls four root-level extension scripts directly from main.R.",
+  "layout": {
+    "outer_folder": "version10.1",
+    "removed_folder": "physical source folder named extensions/",
+    "root_extension_scripts": [
+      "extension_01_hidden_strength_vbm_msm.R",
+      "extension_02_vbm_ps_misspecification.R",
+      "extension_03_good_overlap_instability.R",
+      "extension_04_rgm_vbm_msm.R"
+    ],
+    "enhancedplot_scripts": [
+      "scripts/enhancedplot_hidden_strength.py",
+      "scripts/enhancedplot_vbm_ps_misspecification.py",
+      "scripts/enhancedplot_good_overlap_instability.py",
+      "scripts/enhancedplot_rgm_vbm_msm.py"
+    ],
+    "extension_output_root": "output/version10_extension_results"
+  },
+  "extension_workflows": [
+    {
+      "id": "01_hidden_strength_vbm_msm",
+      "entry_point": "extension_01_hidden_strength_vbm_msm.R",
+      "question": "Different hidden-variable strengths: VBM vs MSM performance comparison",
+      "enhancedplot": "scripts/enhancedplot_hidden_strength.py"
+    },
+    {
+      "id": "02_vbm_ps_misspecification",
+      "entry_point": "extension_02_vbm_ps_misspecification.R",
+      "question": "VBM behavior under observed propensity-score model misspecification",
+      "enhancedplot": "scripts/enhancedplot_vbm_ps_misspecification.py"
+    },
+    {
+      "id": "03_good_overlap_instability",
+      "entry_point": "extension_03_good_overlap_instability.R",
+      "question": "Denominator instability under good overlap",
+      "enhancedplot": "scripts/enhancedplot_good_overlap_instability.py"
+    },
+    {
+      "id": "04_rgm_vbm_msm",
+      "entry_point": "extension_04_rgm_vbm_msm.R",
+      "question": "RGM TV/L1 model exploration and comparison with MSM/VBM",
+      "enhancedplot": "scripts/enhancedplot_rgm_vbm_msm.py"
+    }
+  ]
+}
