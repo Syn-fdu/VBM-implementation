@@ -165,22 +165,7 @@ NHANES 复现部分验证了主结果与论文接近；四个 extension 进一�
 source("main.R")
 ```
 
----
 
-## GitHub 注意事项
-
-本仓库会通过 `.gitignore` 忽略本地工作空间、IDE 配置、缓存文件和生成结果。推送前建议检查：
-
-```bash
-git status
-git ls-files
-```
-
-不要提交 `.RData`、`.Rhistory`、`.Rproj.user/`、`.vscode/`、`__pycache__/`、私有数据，或 `output/` 下的生成文件。
-
-推荐仓库简介：
-
-> Reproducible R/Python project for variance-based sensitivity analysis of hidden confounding, with NHANES replication and VBM/MSM/RGM extensions.
 
 ---
 
