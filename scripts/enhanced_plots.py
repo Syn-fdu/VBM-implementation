@@ -328,7 +328,7 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
 
     ax_top.text(
         xlim[0] + 0.005,
-        0.76,
+        0.9,
         "Benchmarked covariates",
         ha="left",
         va="top",
@@ -456,14 +456,25 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
     method_order = ["MSM", "MSM (Qbal)", "VBM", "VBM, w/ Corr."]
     methods = [m for m in method_order if m in df["method_label"].unique()]
 
+    # Paper-like compact grouping:
+    # smaller offsets keep the four method intervals close within each covariate.
     offsets = {
-        "MSM": -0.30,
-        "MSM (Qbal)": -0.10,
-        "VBM": 0.10,
-        "VBM, w/ Corr.": 0.30,
+        "MSM": -0.18,
+        "MSM (Qbal)": -0.06,
+        "VBM": 0.06,
+        "VBM, w/ Corr.": 0.18,
     }
 
-    fig, ax = plt.subplots(figsize=(16, 5.5))
+    # Muted, paper-like palette. The colors are intentionally not the default
+    # blue/orange/green/red because the default palette looks too bright.
+    method_colors = {
+        "MSM": "#D9992B",          # muted ochre
+        "MSM (Qbal)": "#B65C5A",   # muted brick red
+        "VBM": "#4C78A8",          # muted blue
+        "VBM, w/ Corr.": "#3F3B7A",# muted indigo
+    }
+
+    fig, ax = plt.subplots(figsize=(15.2, 5.4))
 
     for method in methods:
         sub = df.loc[df["method_label"].eq(method)].sort_values("x_base")
@@ -480,15 +491,23 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
             ]
         )
 
+        color = method_colors.get(method, None)
+
         ax.errorbar(
             x,
             y,
             yerr=yerr,
             fmt="o",
-            capsize=3,
-            linewidth=1.6,
-            markersize=4.8,
+            color=color,
+            ecolor=color,
+            capsize=4.5,
+            capthick=2.2,
+            elinewidth=2.8,
+            linewidth=0,
+            markersize=5.6,
+            markeredgewidth=0,
             label=method,
+            zorder=3,
         )
 
     tau = pd.to_numeric(df["tau_hat"], errors="coerce").dropna()
@@ -498,23 +517,35 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
             float(tau.iloc[0]),
             linewidth=2.0,
             linestyle=":",
+            color="#4C78A8",
             label="Original ATT",
+            zorder=1,
         )
 
     ax.axhline(
         0,
         linewidth=2.0,
         linestyle="--",
+        color="#4C78A8",
         label="Null effect",
+        zorder=1,
     )
+
+    # Light gridlines mimic the original paper figure and improve readability.
+    ax.grid(True, axis="y", color="0.82", linewidth=0.8)
+    ax.grid(True, axis="x", color="0.88", linewidth=0.7)
+    ax.set_axisbelow(True)
+
+    # Reduce side padding so the covariate groups occupy the plot area more evenly.
+    ax.set_xlim(-0.45, len(order) - 0.55)
 
     ax.set_xticks(range(len(order)))
 
     ax.set_xticklabels(
         [label_map[v] for v in order],
-        rotation=12,
+        rotation=10,
         ha="right",
-        fontsize=8.8,
+        fontsize=8.5,
     )
 
     ax.tick_params(axis="y", labelsize=9)
@@ -533,9 +564,9 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
         bbox_to_anchor=(0.5, -0.13),
         ncol=6,
         frameon=False,
-        fontsize=8.5,
-        handlelength=1.8,
-        columnspacing=2.1,
+        fontsize=8.3,
+        handlelength=1.6,
+        columnspacing=1.6,
     )
 
     fig.subplots_adjust(bottom=0.25)
