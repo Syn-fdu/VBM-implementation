@@ -31,7 +31,7 @@ import matplotlib.pyplot as plt
 
 
 # Keep SVG text editable
-plt.rcParams["font.size"] = 12
+plt.rcParams["font.size"] = 9
 
 
 # ============================================================
@@ -98,7 +98,7 @@ def interpolate_curve(
 def save_figures(fig: plt.Figure, output_dir: Path, stem: str) -> None:
     """Save a figure as PNG only."""
     output_dir.mkdir(parents=True, exist_ok=True)
-    fig.savefig(output_dir / f"{stem}.png", format="png", dpi=400, bbox_inches="tight")
+    fig.savefig(output_dir / f"{stem}.png", format="png", dpi=300, bbox_inches="tight", pad_inches=0.08)
     plt.close(fig)
 
 def assign_benchmark_label_heights(bmk: pd.DataFrame) -> pd.DataFrame:
@@ -139,14 +139,14 @@ def assign_benchmark_label_heights(bmk: pd.DataFrame) -> pd.DataFrame:
     # More levels = less vertical collision.
     # These values are in the top annotation band coordinate system, from 0 to 1.
     y_levels_for_cluster = [
-        0.22,
-        0.38,
+        0.18,
+        0.30,
+        0.42,
         0.54,
-        0.70,
-        0.86,
+        0.66,
     ]
 
-    single_label_y = 0.50
+    single_label_y = 0.42
 
     for cluster in clusters:
         if len(cluster) == 1:
@@ -230,13 +230,13 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
     # top band for benchmark labels,
     # main panel for curve,
     # bottom room for legend.
-    fig = plt.figure(figsize=(22, 14))
+    fig = plt.figure(figsize=(16, 7.0))
 
     gs = fig.add_gridspec(
         nrows=2,
         ncols=1,
-        height_ratios=[3.6, 9.6],
-        hspace=0.04,
+        height_ratios=[2.6, 7.8],
+        hspace=0.14,
     )
 
     ax_top = fig.add_subplot(gs[0, 0])
@@ -292,15 +292,12 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
     ax.set_xlim(*xlim)
     ax.set_ylim(ymin - 0.12, ymax + 0.45)
 
-    ax.set_title(
-        "Figure 1-style VBM sensitivity curve",
-        fontsize=24,
-        pad=24,
-    )
+    # The title is drawn in the top annotation band to avoid overlap
+    # with benchmark labels when the figure is flattened.
 
-    ax.set_xlabel("R²", fontsize=17)
-    ax.set_ylabel("Estimated ATT", fontsize=17)
-    ax.tick_params(axis="both", labelsize=15)
+    ax.set_xlabel("R²", fontsize=11)
+    ax.set_ylabel("Estimated ATT", fontsize=11)
+    ax.tick_params(axis="both", labelsize=9)
 
     # Put legend below the plot, away from the title and top labels.
     ax.legend(
@@ -308,8 +305,8 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
         bbox_to_anchor=(0.5, -0.12),
         ncol=3,
         frameon=False,
-        fontsize=14,
-        handlelength=2.3,
+        fontsize=8.5,
+        handlelength=2.0,
         columnspacing=2.1,
     )
 
@@ -319,12 +316,23 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
     ax_top.axis("off")
 
     ax_top.text(
-        xlim[0] + 0.005,
+        0.5,
         0.98,
+        "Figure 1-style VBM sensitivity curve",
+        transform=ax_top.transAxes,
+        ha="center",
+        va="top",
+        fontsize=13,
+        fontweight="bold",
+    )
+
+    ax_top.text(
+        xlim[0] + 0.005,
+        0.76,
         "Benchmarked covariates",
         ha="left",
         va="top",
-        fontsize=15,
+        fontsize=8.8,
         fontweight="bold",
     )
 
@@ -340,12 +348,12 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
 
         ax_top.text(
             r2_star + 0.006,
-            0.94,
+            0.55,
             f"R²* = {r2_star:.2f}",
             rotation=90,
-            va="top",
+            va="center",
             ha="left",
-            fontsize=15,
+            fontsize=9.5,
         )
 
     # Benchmark stems and labels.
@@ -371,13 +379,7 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
             textcoords="data",
             ha="center",
             va="center",
-            fontsize=13,
-            bbox=dict(
-                boxstyle="round,pad=0.25",
-                fc="white",
-                ec="0.75",
-                alpha=0.96,
-            ),
+            fontsize=8.2,
             arrowprops=dict(
                 arrowstyle="-",
                 lw=0.9,
@@ -389,7 +391,7 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
         )
 
     # Leave enough bottom space for legend.
-    fig.subplots_adjust(bottom=0.13)
+    fig.subplots_adjust(bottom=0.20)
 
     save_figures(fig, output_dir, "figure1_vbm_paper_style")
 
@@ -461,7 +463,7 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
         "VBM, w/ Corr.": 0.30,
     }
 
-    fig, ax = plt.subplots(figsize=(24, 12))
+    fig, ax = plt.subplots(figsize=(16, 5.5))
 
     for method in methods:
         sub = df.loc[df["method_label"].eq(method)].sort_values("x_base")
@@ -483,9 +485,9 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
             y,
             yerr=yerr,
             fmt="o",
-            capsize=5,
-            linewidth=2.3,
-            markersize=7.5,
+            capsize=3,
+            linewidth=1.6,
+            markersize=4.8,
             label=method,
         )
 
@@ -510,33 +512,33 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
 
     ax.set_xticklabels(
         [label_map[v] for v in order],
-        rotation=10,
+        rotation=12,
         ha="right",
-        fontsize=15,
+        fontsize=8.8,
     )
 
-    ax.tick_params(axis="y", labelsize=15)
+    ax.tick_params(axis="y", labelsize=9)
 
-    ax.set_ylabel("Estimated ATT", fontsize=17)
-    ax.set_xlabel("Benchmark covariate", fontsize=17)
+    ax.set_ylabel("Estimated ATT", fontsize=11)
+    ax.set_xlabel("")
 
     ax.set_title(
         "Figure 3-style benchmark intervals: four model comparison",
-        fontsize=24,
-        pad=22,
+        fontsize=15,
+        pad=10,
     )
 
     ax.legend(
         loc="upper center",
-        bbox_to_anchor=(0.5, -0.10),
+        bbox_to_anchor=(0.5, -0.13),
         ncol=6,
         frameon=False,
-        fontsize=14,
-        handlelength=2.3,
+        fontsize=8.5,
+        handlelength=1.8,
         columnspacing=2.1,
     )
 
-    fig.subplots_adjust(bottom=0.17)
+    fig.subplots_adjust(bottom=0.25)
 
     save_figures(fig, output_dir, "figure3_benchmark_paper_style")
 
@@ -600,7 +602,7 @@ def make_figure4_rgm_extension(input_dir: Path, output_dir: Path) -> None:
         "RGM (sharp)": 0.27,
     }
 
-    fig, ax = plt.subplots(figsize=(24, 12))
+    fig, ax = plt.subplots(figsize=(16, 5.5))
 
     for method in methods:
         sub = df.loc[df["method_label"].eq(method)].sort_values("x_base")
@@ -636,7 +638,7 @@ def make_figure4_rgm_extension(input_dir: Path, output_dir: Path) -> None:
     )
 
     ax.tick_params(axis="y", labelsize=15)
-    ax.set_ylabel("Estimated ATT", fontsize=17)
+    ax.set_ylabel("Estimated ATT", fontsize=11)
     ax.set_xlabel("Benchmark covariate", fontsize=17)
     ax.set_title(
         "Benchmark intervals with RGM extension",
@@ -654,7 +656,7 @@ def make_figure4_rgm_extension(input_dir: Path, output_dir: Path) -> None:
         columnspacing=2.1,
     )
 
-    fig.subplots_adjust(bottom=0.17)
+    fig.subplots_adjust(bottom=0.25)
     save_figures(fig, output_dir, "figure4_benchmark_rgm_extension_paper_style")
 
 # ============================================================
