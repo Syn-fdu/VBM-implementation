@@ -7,7 +7,7 @@ good-overlap denominator instability.
 
 This cleaned version keeps only the two diagnostic figures that carry the main
 message of the extension:
-1. the observed-weight variance denominator heatmap;
+1. the observed-weight variance denominator line plot;
 2. the epsilon sensitivity curve for the stabilized diagnostic.
 """
 
@@ -49,41 +49,47 @@ def fmt_cell(value: float) -> str:
     return f"{value:.3f}" if abs(value) < 0.1 else f"{value:.2f}"
 
 
-def plot_denominator_heatmap(alpha_hidden: pd.DataFrame, output_dir: Path) -> None:
-    pivot = (
-        alpha_hidden.pivot_table(
-            index="hidden_strength",
-            columns="observed_strength",
-            values="var_observed_control_median",
-            aggfunc="mean",
-        )
-        .sort_index()
-        .sort_index(axis=1)
+def plot_denominator_lineplot(alpha_hidden: pd.DataFrame, output_dir: Path) -> None:
+    """Plot one representative denominator curve for a clearer diagnostic figure."""
+    fig, ax = plt.subplots(figsize=FIGSIZE)
+
+    # The hidden-strength lines almost perfectly overlap in this diagnostic.
+    # Keep one representative curve to avoid visual clutter.
+    target_hidden = 0.12
+    available = np.array(sorted(alpha_hidden["hidden_strength"].dropna().unique()), dtype=float)
+    chosen_hidden = available[np.argmin(np.abs(available - target_hidden))]
+
+    d = (
+        alpha_hidden.loc[np.isclose(alpha_hidden["hidden_strength"], chosen_hidden)]
+        .sort_values("observed_strength")
+        .copy()
     )
 
-    fig, ax = plt.subplots(figsize=FIGSIZE)
-    im = ax.imshow(pivot.values, aspect="auto",cmap="viridis")
-
-    ax.set_xticks(np.arange(pivot.shape[1]))
-    ax.set_xticklabels([f"{x:g}" for x in pivot.columns], rotation=45, ha="right")
-    ax.set_yticks(np.arange(pivot.shape[0]))
-    ax.set_yticklabels([f"{x:g}" for x in pivot.index])
+    ax.plot(
+        d["observed_strength"],
+        d["var_observed_control_median"],
+        marker="o",
+        linewidth=2.4,
+        markersize=5.5,
+    )
 
     ax.set_xlabel("Observed propensity signal (alpha)")
-    ax.set_ylabel("Hidden-confounder strength")
+    ax.set_ylabel("Median Var(observed control weights)")
     ax.set_title("VBM denominator is near zero under good overlap")
+    ax.grid(True, linewidth=0.5, alpha=0.35)
 
-    max_val = np.nanmax(pivot.values)
-    for i in range(pivot.shape[0]):
-        for j in range(pivot.shape[1]):
-            value = pivot.values[i, j]
-            text_color = "white" if np.isfinite(value) and value > 0.55 * max_val else "black"
-            ax.text(j, i, fmt_cell(value), ha="center", va="center", fontsize=7.5, color=text_color)
+    ax.text(
+        0.03,
+        0.92,
+        f"Representative hidden-confounder strength = {chosen_hidden:g}",
+        transform=ax.transAxes,
+        fontsize=8.5,
+        ha="left",
+        va="top",
+        bbox={"boxstyle": "round,pad=0.25", "facecolor": "white", "edgecolor": "0.8", "alpha": 0.9},
+    )
 
-    cbar = fig.colorbar(im, ax=ax)
-    cbar.set_label("Median Var(observed control weights)")
-
-    save(fig, output_dir, "enhanced_good_overlap_denominator_heatmap.png")
+    save(fig, output_dir, "enhanced_good_overlap_denominator_lineplot_single_curve.png")
 
 
 def plot_epsilon_sensitivity(epsilon: pd.DataFrame, output_dir: Path) -> None:
@@ -131,7 +137,7 @@ def main() -> None:
     alpha_hidden = read_csv(input_dir, "good_overlap_alpha_hidden_summary.csv")
     epsilon = read_csv(input_dir, "good_overlap_epsilon_summary.csv")
 
-    plot_denominator_heatmap(alpha_hidden, output_dir)
+    plot_denominator_lineplot(alpha_hidden, output_dir)
     plot_epsilon_sensitivity(epsilon, output_dir)
 
     print(f"Saved cleaned Extension 03 plots to {output_dir}")
