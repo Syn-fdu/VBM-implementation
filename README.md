@@ -75,7 +75,7 @@ Outputs are regenerated under:
 output/tables/
 output/figures/
 output/figures_enhanced/
-output/version10_extension_results/
+output/extension_results/
 ```
 
 Generated outputs are ignored by Git by default. Re-run `source("main.R")` to recreate them.

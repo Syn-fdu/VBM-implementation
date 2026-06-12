@@ -114,8 +114,8 @@ dirs <- v10_prepare_extension_dirs(.project_dir, "02_vbm_ps_misspecification")
 v10_clear_output_files(dirs$tables, dirs$figures, dirs$enhanced)
 
 config$seed <- 4210
-config$output_figures_dir <- file.path("output", "version10_extension_results", "02_vbm_ps_misspecification", "figures")
-config$output_tables_dir <- file.path("output", "version10_extension_results", "02_vbm_ps_misspecification", "tables")
+config$output_figures_dir <- file.path("output", "extension_results", "02_vbm_ps_misspecification", "figures")
+config$output_tables_dir <- file.path("output", "extension_results", "02_vbm_ps_misspecification", "tables")
 
 # Keep the extension fast enough to run automatically from main.R.
 config$R2_min <- 0
@@ -416,4 +416,4 @@ v10_run_python_plot(
 
 cat("\n========== Extension 02 summary ==========\n")
 print(summary_df)
-cat("Outputs saved under: ", file.path("output", "version10_extension_results", "02_vbm_ps_misspecification"), "\n", sep = "")
+cat("Outputs saved under: ", file.path("output", "extension_results", "02_vbm_ps_misspecification"), "\n", sep = "")

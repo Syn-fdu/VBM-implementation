@@ -75,7 +75,7 @@ source("main.R")    # 主分析 + enhanced plots + 四个 extensions
 output/tables/
 output/figures/
 output/figures_enhanced/
-output/version10_extension_results/
+output/extension_results/
 ```
 
 生成结果默认被 Git 忽略。重新运行 `source("main.R")` 即可复现全部表格和图片。

@@ -117,8 +117,8 @@ dirs <- v10_prepare_extension_dirs(.project_dir, "04_rgm_vbm_msm")
 v10_clear_output_files(dirs$tables, dirs$figures, dirs$enhanced)
 
 config$seed <- 2024
-config$output_figures_dir <- file.path("output", "version10_extension_results", "04_rgm_vbm_msm", "figures")
-config$output_tables_dir <- file.path("output", "version10_extension_results", "04_rgm_vbm_msm", "tables")
+config$output_figures_dir <- file.path("output", "extension_results", "04_rgm_vbm_msm", "figures")
+config$output_tables_dir <- file.path("output", "extension_results", "04_rgm_vbm_msm", "tables")
 
 # Runtime-aware settings for automatic extension execution.
 config$coarse_B <- 120
@@ -277,4 +277,4 @@ v10_run_python_plot(
 
 cat("\n========== Extension 04 summary ==========\n")
 print(threshold_summary)
-cat("Outputs saved under: ", file.path("output", "version10_extension_results", "04_rgm_vbm_msm"), "\n", sep = "")
+cat("Outputs saved under: ", file.path("output", "extension_results", "04_rgm_vbm_msm"), "\n", sep = "")

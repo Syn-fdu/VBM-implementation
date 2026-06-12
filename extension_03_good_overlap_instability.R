@@ -306,4 +306,4 @@ v10_run_python_plot(
 
 cat("\n========== Extension 03 summary ==========\n")
 print(head(summary_by_hidden, 12))
-cat("Outputs saved under: ", file.path("output", "version10_extension_results", "03_good_overlap_instability"), "\n", sep = "")
+cat("Outputs saved under: ", file.path("output", "extension_results", "03_good_overlap_instability"), "\n", sep = "")

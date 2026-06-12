@@ -116,8 +116,8 @@ cat("Synthetic project root: ", .project_dir, "\n", sep = "")
 # ------------------------------------------------------------
 config$seed <- 2027
 
-config$output_figures_dir <- "output/version10_extension_results/01_hidden_strength_vbm_msm/figures"
-config$output_tables_dir <- "output/version10_extension_results/01_hidden_strength_vbm_msm/tables"
+config$output_figures_dir <- "output/extension_results/01_hidden_strength_vbm_msm/figures"
+config$output_tables_dir <- "output/extension_results/01_hidden_strength_vbm_msm/tables"
 dir.create(config$output_figures_dir, recursive = TRUE, showWarnings = FALSE)
 dir.create(config$output_tables_dir, recursive = TRUE, showWarnings = FALSE)
 
@@ -179,7 +179,7 @@ clear_synthetic_outputs <- function(config, project_dir) {
   dirs <- c(
     file.path(project_dir, config$output_figures_dir),
     file.path(project_dir, config$output_tables_dir),
-    file.path(project_dir, "output/version10_extension_results/01_hidden_strength_vbm_msm/figures_enhanced")
+    file.path(project_dir, "output/extension_results/01_hidden_strength_vbm_msm/figures_enhanced")
   )
 
   for (d in dirs) {
@@ -942,12 +942,12 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
 }
 
 
-run_enhanced_synthetic_plots <- function(config, project_dir) {
+run_enhanced_hidden_strength_plots <- function(config, project_dir) {
 
   script_path <- file.path(project_dir, "scripts", "enhancedplot_hidden_strength.py")
 
   if (!file.exists(script_path)) {
-    cat("Skipping enhanced synthetic plots because script is missing: ",
+    cat("Skipping enhanced hidden-strength plots because script is missing: ",
         script_path, "\n", sep = "")
     return(invisible(FALSE))
   }
@@ -958,7 +958,7 @@ run_enhanced_synthetic_plots <- function(config, project_dir) {
   }
 
   if (!nzchar(python_bin)) {
-    cat("Skipping enhanced synthetic plots because neither python nor python3 was found.\n")
+    cat("Skipping enhanced hidden-strength plots because neither python nor python3 was found.\n")
     cat("You can still run the script manually after installing Python packages pandas and matplotlib.\n")
     return(invisible(FALSE))
   }
@@ -970,14 +970,14 @@ run_enhanced_synthetic_plots <- function(config, project_dir) {
   )
 
   output_dir <- normalizePath(
-    file.path(project_dir, "output/version10_extension_results/01_hidden_strength_vbm_msm/figures_enhanced"),
+    file.path(project_dir, "output/extension_results/01_hidden_strength_vbm_msm/figures_enhanced"),
     winslash = "/",
     mustWork = FALSE
   )
 
   dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
-  cat("\nGenerating enhanced synthetic plots with Python...\n")
+  cat("\nGenerating enhanced hidden-strength plots with Python...\n")
   cat("Python: ", python_bin, "\n", sep = "")
   cat("Script: ", script_path, "\n", sep = "")
 
@@ -991,11 +991,11 @@ run_enhanced_synthetic_plots <- function(config, project_dir) {
       )
     },
     warning = function(w) {
-      cat("Enhanced synthetic plot warning: ", conditionMessage(w), "\n", sep = "")
+      cat("Enhanced hidden-strength plot warning: ", conditionMessage(w), "\n", sep = "")
       return(NULL)
     },
     error = function(e) {
-      cat("Enhanced synthetic plot error: ", conditionMessage(e), "\n", sep = "")
+      cat("Enhanced hidden-strength plot error: ", conditionMessage(e), "\n", sep = "")
       return(NULL)
     }
   )
@@ -1006,7 +1006,7 @@ run_enhanced_synthetic_plots <- function(config, project_dir) {
 
   status <- attr(result, "status")
   if (!is.null(status) && status != 0) {
-    cat("Enhanced synthetic plot script exited with status ", status, ".\n", sep = "")
+    cat("Enhanced hidden-strength plot script exited with status ", status, ".\n", sep = "")
     return(invisible(FALSE))
   }
 
@@ -1014,12 +1014,12 @@ run_enhanced_synthetic_plots <- function(config, project_dir) {
   invisible(TRUE)
 }
 
-run_enhanced_synthetic_plots(config = config, project_dir = .project_dir)
+run_enhanced_hidden_strength_plots(config = config, project_dir = .project_dir)
 
 cat("\n========== Synthetic extension summary ==========\n")
 print(all_summaries)
 cat("\nOutputs saved under: ", config$output_tables_dir, " and ", config$output_figures_dir, "\n", sep = "")
-cat("Standard per-dataset R plots are saved under output/version10_extension_results/01_hidden_strength_vbm_msm/figures/.\n")
-cat("Enhanced Figure 1-style and benchmark plots are saved under output/version10_extension_results/01_hidden_strength_vbm_msm/figures_enhanced/.\n")
+cat("Standard per-dataset R plots are saved under output/extension_results/01_hidden_strength_vbm_msm/figures/.\n")
+cat("Enhanced Figure 1-style and benchmark plots are saved under output/extension_results/01_hidden_strength_vbm_msm/figures_enhanced/.\n")
 cat("If Python was unavailable during the R run, generate enhanced plots manually with:\n")
-cat("  python scripts/enhancedplot_hidden_strength.py --input output/version10_extension_results/01_hidden_strength_vbm_msm/tables --output output/version10_extension_results/01_hidden_strength_vbm_msm/figures_enhanced\n")
+cat("  python scripts/enhancedplot_hidden_strength.py --input output/extension_results/01_hidden_strength_vbm_msm/tables --output output/extension_results/01_hidden_strength_vbm_msm/figures_enhanced\n")

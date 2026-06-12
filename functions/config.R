@@ -143,11 +143,6 @@ config <- list(
   run_extension_03_good_overlap_instability = TRUE,
   run_extension_04_rgm_vbm_msm = TRUE,
 
-  # Legacy integrated RGM block in main.R is kept for backward compatibility
-  # but is no longer the default Version10.2 path. The fourth refactored
-  # extension below now owns the RGM/VBM/MSM comparison output.
-  run_rgm_extension = FALSE,
-  rgm_clear_output_before_run = TRUE,
 
   # RGM sharp ATT-T search grid and bootstrap settings.
   # The sharp model is the only RGM model that searches T*.

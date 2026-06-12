@@ -15,9 +15,9 @@ dataset, VBM/MSM benchmark interval comparisons, and a cross-dataset detection
 power plot along the omitted-confounding strength axis.
 
 Usage:
-    python scripts/enhanced_synthetic_plots.py \
-        --input output/version10_extension_results/01_hidden_strength_vbm_msm/tables \
-        --output output/version10_extension_results/01_hidden_strength_vbm_msm/figures_enhanced
+    python scripts/enhancedplot_hidden_strength.py \
+        --input output/extension_results/01_hidden_strength_vbm_msm/tables \
+        --output output/extension_results/01_hidden_strength_vbm_msm/figures_enhanced
 """
 
 from __future__ import annotations

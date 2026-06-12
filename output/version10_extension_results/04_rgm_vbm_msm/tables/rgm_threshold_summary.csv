@@ -1,4 +1,0 @@
-"quantity","value","interpretation"
-"ATT",2.09257902777209,"Observed IPW ATT under the NHANES observed PS model."
-"VBM_R2_star",0.497287852448667,"Smallest VBM R2 on the searched grid whose bootstrap interval reaches the null."
-"RGM_sharp_T_star",0.392845428328892,"Smallest sharp RGM total-variation radius on the searched grid whose bootstrap interval reaches the null."

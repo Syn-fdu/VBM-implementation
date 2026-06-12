@@ -528,150 +528,6 @@ ggsave(
 
 
 # ------------------------------------------------------------
-# Optional integrated RGM extension
-# ------------------------------------------------------------
-# Disabled by default. When config$run_rgm_extension is TRUE, main.R also runs
-# the RGM conservative/sharp extension after the base VBM/MSM workflow. The
-# extension reuses benchmark_df, vbm_benchmark_bootstrap_curve, and
-# msm_benchmark_bootstrap_curve that were already computed above; it does not
-# rerun the VBM/MSM benchmark or their benchmark bootstrap.
-
-if (isTRUE(config$run_rgm_extension)) {
-
-  source_project_file("rgm_model/rgm_conservative.R")
-  source_project_file("rgm_model/rgm_sharp.R")
-  source_project_file("rgm_model/rgm_benchmark.R")
-
-  required_rgm_functions <- c(
-    "rgm_sharp_att_bounds",
-    "rgm_conservative_att_bounds",
-    "find_rgm_sharp_T_bootstrap",
-    "run_rgm_benchmark_comparison",
-    "plot_rgm_sharp_att_T_curve",
-    "plot_rgm_benchmark_comparison"
-  )
-
-  missing_rgm_functions <- required_rgm_functions[
-    !vapply(
-      required_rgm_functions,
-      function(x) exists(x, mode = "function", envir = .project_env, inherits = FALSE),
-      logical(1)
-    )
-  ]
-
-  if (length(missing_rgm_functions) > 0) {
-    stop(
-      paste0(
-        "Missing required RGM extension function(s): ",
-        paste(missing_rgm_functions, collapse = ", "),
-        ". Run aborted before RGM output generation."
-      )
-    )
-  }
-
-  dir.create(config$output_figures_dir, recursive = TRUE, showWarnings = FALSE)
-  dir.create(config$output_tables_dir, recursive = TRUE, showWarnings = FALSE)
-
-  if (isTRUE(config$rgm_clear_output_before_run)) {
-    old_rgm_files <- file.path(
-      config$output_tables_dir,
-      c(
-        "plot_rgm_sharp_bootstrap_curve.csv",
-        "plot_covariate_benchmark_vbm_msm_rgm.csv"
-      )
-    )
-
-    old_rgm_figures <- file.path(
-      config$output_figures_dir,
-      c(
-        "rgm_sharp_att_T_curve.png",
-        "covariate_benchmark_vbm_msm_rgm.png"
-      )
-    )
-
-    unlink(c(old_rgm_files, old_rgm_figures), force = TRUE)
-  }
-
-  rgm_sharp_output <- find_rgm_sharp_T_bootstrap(
-    data = analysis,
-    config = config
-  )
-
-  rgm_sharp_bootstrap_curve <- rgm_sharp_output$results
-  rgm_sharp_T_star <- rgm_sharp_output$T_star
-
-  cat("Sharp RGM bootstrap T* =", rgm_sharp_T_star, "\n")
-
-  sharp_det_grid <- sort(unique(
-    rgm_sharp_bootstrap_curve$T[is.finite(rgm_sharp_bootstrap_curve$T)]
-  ))
-
-  rgm_sharp_deterministic_curve <- run_rgm_sharp_att_T_grid(
-    analysis = analysis,
-    T_grid = sharp_det_grid,
-    config = config
-  )
-
-  rgm_benchmark_output <- run_rgm_benchmark_comparison(
-    analysis = analysis,
-    tau_hat = tau_hat,
-    full_formula = ps_formula,
-    config = config,
-    base_benchmark_df = benchmark_df,
-    base_vbm_benchmark_bootstrap_curve = vbm_benchmark_bootstrap_curve,
-    base_msm_benchmark_bootstrap_curve = msm_benchmark_bootstrap_curve
-  )
-
-  rgm_benchmark_df <- rgm_benchmark_output$benchmark_df
-
-  write.csv(
-    rgm_sharp_bootstrap_curve,
-    file.path(config$output_tables_dir, "plot_rgm_sharp_bootstrap_curve.csv"),
-    row.names = FALSE
-  )
-
-  write.csv(
-    rgm_benchmark_df,
-    file.path(config$output_tables_dir, "plot_covariate_benchmark_vbm_msm_rgm.csv"),
-    row.names = FALSE
-  )
-
-  p_sharp_curve <- plot_rgm_sharp_att_T_curve(
-    results = rgm_sharp_bootstrap_curve,
-    T_star = rgm_sharp_T_star,
-    deterministic_curve = rgm_sharp_deterministic_curve
-  )
-
-  p_rgm_benchmark <- plot_rgm_benchmark_comparison(
-    df = rgm_benchmark_df,
-    tau_hat = tau_hat,
-    config = config
-  )
-
-  ggplot2::ggsave(
-    file.path(config$output_figures_dir, "rgm_sharp_att_T_curve.png"),
-    p_sharp_curve,
-    width = 7.5,
-    height = 5.2,
-    dpi = 300
-  )
-
-  ggplot2::ggsave(
-    file.path(config$output_figures_dir, "covariate_benchmark_vbm_msm_rgm.png"),
-    p_rgm_benchmark,
-    width = 10.5,
-    height = 5.8,
-    dpi = 300
-  )
-
-  cat("\n========== RGM extension results ==========" , "\n")
-  cat("RGM sharp bootstrap T* = ", rgm_sharp_T_star, "\n", sep = "")
-  cat("RGM outputs saved to ", config$output_figures_dir,
-      " and ", config$output_tables_dir, ".\n", sep = "")
-}
-
-
-# ------------------------------------------------------------
 # Main-program enhanced plots
 # ------------------------------------------------------------
 # This is the enhancedplot auto-launch for the base NHANES main program.
@@ -716,7 +572,7 @@ run_v10_standalone_extension <- function(flag_name, script_name, extension_id, e
     enabled_by_default = TRUE,
     enabled_this_run = enabled,
     entry_point = script_name,
-    output_dir = file.path("output", "version10_extension_results", extension_id),
+    output_dir = file.path("output", "extension_results", extension_id),
     stringsAsFactors = FALSE
   )
 
@@ -759,16 +615,16 @@ if (isTRUE(config$run_version10_extensions)) {
     )
   )
 
-  version10_index_dir <- file.path(.project_dir, "output", "version10_extension_results")
+  version10_index_dir <- file.path(.project_dir, "output", "extension_results")
   dir.create(version10_index_dir, recursive = TRUE, showWarnings = FALSE)
   version10_index <- do.call(rbind, version10_extension_rows)
   write.csv(
     version10_index,
-    file.path(version10_index_dir, "version10_extension_index.csv"),
+    file.path(version10_index_dir, "extension_index.csv"),
     row.names = FALSE
   )
   cat("Version10.2 extension index saved to: ",
-      file.path(version10_index_dir, "version10_extension_index.csv"), "\n", sep = "")
+      file.path(version10_index_dir, "extension_index.csv"), "\n", sep = "")
 } else {
   cat("Version10.2 extensions are disabled by config$run_version10_extensions.\n")
 }
