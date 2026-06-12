@@ -38,15 +38,16 @@ plt.rcParams.update({
 })
 
 PALETTE = {
-    "MSM": "#E69F00",              # warm orange
-    "VBM": "#0072B2",              # clear blue
-    "RGM-sharp": "#009E73",        # green
-    "RGM-conservative": "#CC79A7", # purple-red
-    "lower": "#2C7FB8",
-    "upper": "#F28E2B",
-    "fill": "#9ECAE1",
+    # Muted, paper-like palette aligned with the main benchmark figures.
+    "MSM": "#D9992B",              # muted ochre
+    "VBM": "#4C78A8",              # muted blue
+    "RGM-sharp": "#3F3B7A",        # muted indigo
+    "RGM-conservative": "#B65C5A", # muted brick red
+    "lower": "#6F7FAF",
+    "upper": "#6F7FAF",
+    "fill": "#B7C9D9",
     "zero": "#4D4D4D",
-    "tstar": "#2C7FB8",
+    "tstar": "#4C78A8",
 }
 
 LABEL_MAP = {

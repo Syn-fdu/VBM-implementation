@@ -186,10 +186,6 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
 
     ci_lower = interpolate_curve(boot, "R2", "lower", xs)
     ci_upper = interpolate_curve(boot, "R2", "upper", xs)
-
-    # Deterministic point-bound curves are intentionally absent from the
-    # current pipeline. Figure 1 therefore reports only bootstrap intervals
-    # and their midpoints, with no duplicated interval-bound overlay.
     midpoints = (ci_lower + ci_upper) / 2
 
     r2_star = metric_value(
@@ -216,31 +212,13 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
 
     bmk["label"] = bmk["variable"].map(label_map).fillna(bmk["variable"].astype(str))
 
-    # Wider x range leaves room at both sides.
     xlim = (-0.08, 0.78)
-
     bmk = bmk.loc[
         (bmk["sensitivity_value"] >= xlim[0])
         & (bmk["sensitivity_value"] <= xlim[1])
     ].copy()
 
-    bmk = assign_benchmark_label_heights(bmk)
-
-    # Large figure:
-    # top band for benchmark labels,
-    # main panel for curve,
-    # bottom room for legend.
-    fig = plt.figure(figsize=(16, 7.0))
-
-    gs = fig.add_gridspec(
-        nrows=2,
-        ncols=1,
-        height_ratios=[2.6, 7.8],
-        hspace=0.14,
-    )
-
-    ax_top = fig.add_subplot(gs[0, 0])
-    ax = fig.add_subplot(gs[1, 0], sharex=ax_top)
+    fig, ax = plt.subplots(figsize=(14.5, 4.5))
 
     # ---------------- Main plot ----------------
     ax.vlines(
@@ -291,18 +269,22 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
 
     ax.set_xlim(*xlim)
     ax.set_ylim(ymin - 0.12, ymax + 0.45)
-
-    # The title is drawn in the top annotation band to avoid overlap
-    # with benchmark labels when the figure is flattened.
+    y_top = ax.get_ylim()[1]
 
     ax.set_xlabel("R²", fontsize=11)
     ax.set_ylabel("Estimated ATT", fontsize=11)
     ax.tick_params(axis="both", labelsize=9)
 
-    # Put legend below the plot, away from the title and top labels.
+    fig.suptitle(
+        "VBM sensitivity curve",
+        fontsize=12,
+        fontweight="bold",
+        y=0.98,
+    )
+
     ax.legend(
         loc="upper center",
-        bbox_to_anchor=(0.5, -0.12),
+        bbox_to_anchor=(0.5, -0.14),
         ncol=3,
         frameon=False,
         fontsize=8.5,
@@ -310,88 +292,93 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
         columnspacing=2.1,
     )
 
-    # ---------------- Top annotation band ----------------
-    ax_top.set_xlim(*xlim)
-    ax_top.set_ylim(0, 1)
-    ax_top.axis("off")
-
-    ax_top.text(
-        0.5,
-        0.98,
-        "Figure 1-style VBM sensitivity curve",
-        transform=ax_top.transAxes,
-        ha="center",
-        va="top",
-        fontsize=13,
-        fontweight="bold",
-    )
-
-    ax_top.text(
-        xlim[0] + 0.005,
-        0.9,
-        "Benchmarked covariates",
-        ha="left",
-        va="top",
-        fontsize=8.8,
-        fontweight="bold",
-    )
-
-    # R² star label
+    # R²* annotation inside the main panel.
     if np.isfinite(r2_star):
-        ax_top.axvline(
-            r2_star,
-            ymin=0.05,
-            ymax=0.95,
-            linewidth=2.2,
-            linestyle=":",
-        )
-
-        ax_top.text(
-            r2_star + 0.006,
-            0.55,
+        ax.annotate(
             f"R²* = {r2_star:.2f}",
-            rotation=90,
-            va="center",
+            xy=(r2_star, y_top - 0.85),
+            xytext=(r2_star + 0.025, y_top - 0.55),
             ha="left",
-            fontsize=9.5,
-        )
-
-    # Benchmark stems and labels.
-    # Label x-position equals vertical-line x-position.
-    for _, row in bmk.iterrows():
-        x = float(row["sensitivity_value"])
-        y_text = float(row["y_text"])
-        label = str(row["label"])
-
-        # short stem from bottom of annotation band
-        ax_top.plot(
-            [x, x],
-            [0.02, 0.16],
-            linewidth=1.1,
-            alpha=0.45,
-        )
-
-        # centered exactly above the vertical line
-        ax_top.annotate(
-            label,
-            xy=(x, 0.16),
-            xytext=(x, y_text),
-            textcoords="data",
-            ha="center",
-            va="center",
-            fontsize=8.2,
+            va="top",
+            fontsize=9.2,
+            bbox=dict(boxstyle="round,pad=0.22", fc="white", ec="0.7", alpha=0.9),
             arrowprops=dict(
                 arrowstyle="-",
                 lw=0.9,
-                alpha=0.6,
-                shrinkA=4,
-                shrinkB=2,
+                alpha=0.7,
             ),
-            clip_on=False,
         )
 
-    # Leave enough bottom space for legend.
-    fig.subplots_adjust(bottom=0.20)
+    # Group left-cluster covariates into a single central annotation.
+    other_vars = {
+        "gender",
+        "age",
+        "income_missing",
+        "cig_smoked",
+        "smoking_history",
+    }
+
+    other = bmk.loc[bmk["variable"].isin(other_vars)].copy()
+    mid = bmk.loc[bmk["variable"].isin(["income", "race", "education"])].copy()
+
+    # Single label for the left cluster.
+    if not other.empty:
+        x_anchor = float(other["sensitivity_value"].median())
+        x_text = max(0.01, x_anchor + 0.01)
+        y_anchor = y_top - 0.34
+        y_text = y_top - 1.02
+
+        ax.annotate(
+            "Other covariates",
+            xy=(x_anchor, y_anchor),
+            xytext=(x_text, y_text),
+            ha="left",
+            va="center",
+            fontsize=8.9,
+            arrowprops=dict(
+                arrowstyle="-",
+                lw=0.9,
+                alpha=0.7,
+                shrinkA=2,
+                shrinkB=2,
+            ),
+            bbox=dict(boxstyle="round,pad=0.18", fc="white", ec="none", alpha=0.82),
+            zorder=4,
+        )
+
+    # Key benchmark labels inside the main panel.
+    preferred_positions = {
+        "income": {"dx": -0.012, "dy": 0.92, "ha": "right"},
+        "race": {"dx": 0.005, "dy": 0.92, "ha": "left"},
+        "education": {"dx": -0.01, "dy": 0.58, "ha": "left"},
+    }
+
+    for _, row in mid.iterrows():
+        var = str(row["variable"])
+        x = float(row["sensitivity_value"])
+        pos = preferred_positions.get(var, {"dx": 0.01, "dy": 0.8, "ha": "left"})
+        y_anchor = y_top - 0.34
+        y_text = y_top - pos["dy"]
+
+        ax.annotate(
+            str(row["label"]),
+            xy=(x, y_anchor),
+            xytext=(x + pos["dx"], y_text),
+            ha=pos["ha"],
+            va="center",
+            fontsize=8.8,
+            arrowprops=dict(
+                arrowstyle="-",
+                lw=0.9,
+                alpha=0.7,
+                shrinkA=2,
+                shrinkB=2,
+            ),
+            bbox=dict(boxstyle="round,pad=0.16", fc="white", ec="none", alpha=0.82),
+            zorder=4,
+        )
+
+    fig.subplots_adjust(bottom=0.24, top=0.88)
 
     save_figures(fig, output_dir, "figure1_vbm_paper_style")
 
@@ -554,8 +541,8 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
     ax.set_xlabel("")
 
     ax.set_title(
-        "Figure 3-style benchmark intervals: four model comparison",
-        fontsize=15,
+        "Benchmark intervals comparison",
+        fontsize=12,
         pad=10,
     )
 
@@ -575,120 +562,6 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
 
 
 
-# ============================================================
-# Optional RGM benchmark extension figure
-# ============================================================
-def make_figure4_rgm_extension(input_dir: Path, output_dir: Path) -> None:
-    path = input_dir / "plot_covariate_benchmark_vbm_msm_rgm.csv"
-    if not path.exists():
-        return
-
-    benchmark = pd.read_csv(path)
-
-    label_map = {
-        "gender": "Gender",
-        "age": "Age",
-        "income": "Income",
-        "income_missing": "Income (Missing)",
-        "education": "Education",
-        "cig_smoked": "Cig. Smoked",
-        "smoking_history": "Smoking history",
-        "race": "Race",
-    }
-
-    order = [v for v in label_map if v in set(benchmark["variable"].astype(str))]
-    remaining = [v for v in benchmark["variable"].astype(str).unique() if v not in order]
-    order = order + remaining
-
-    def normalize_method(x: str) -> str:
-        x = str(x)
-        xu = x.upper()
-        if "RGM-SHARP" in xu or "RGM (SHARP" in xu:
-            return "RGM (sharp)"
-        if "RGM-CONSERVATIVE" in xu or xu == "RGM":
-            return "RGM"
-        if xu == "MSM" or "MSM BENCHMARK" in xu:
-            return "MSM"
-        if xu == "VBM" or "VBM BENCHMARK" in xu:
-            return "VBM"
-        return x
-
-    df = benchmark.copy()
-    df["method_label"] = df["method"].map(normalize_method)
-    df = df[df["method_label"].isin(["MSM", "VBM", "RGM", "RGM (sharp)"])].copy()
-
-    if df.empty:
-        return
-
-    df["x_base"] = df["variable"].astype(str).apply(
-        lambda v: order.index(v) if v in order else len(order)
-    )
-
-    method_order = ["MSM", "VBM", "RGM", "RGM (sharp)"]
-    methods = [m for m in method_order if m in df["method_label"].unique()]
-    offsets = {
-        "MSM": -0.27,
-        "VBM": -0.09,
-        "RGM": 0.09,
-        "RGM (sharp)": 0.27,
-    }
-
-    fig, ax = plt.subplots(figsize=(16, 5.5))
-
-    for method in methods:
-        sub = df.loc[df["method_label"].eq(method)].sort_values("x_base")
-        x = sub["x_base"].to_numpy(dtype=float) + offsets.get(method, 0.0)
-        y = pd.to_numeric(sub["tau_hat"], errors="coerce").to_numpy(dtype=float)
-        lower = pd.to_numeric(sub["lower"], errors="coerce").to_numpy(dtype=float)
-        upper = pd.to_numeric(sub["upper"], errors="coerce").to_numpy(dtype=float)
-        yerr = np.vstack([y - lower, upper - y])
-
-        ax.errorbar(
-            x,
-            y,
-            yerr=yerr,
-            fmt="o",
-            capsize=5,
-            linewidth=2.3,
-            markersize=7.5,
-            label=method,
-        )
-
-    tau = pd.to_numeric(df["tau_hat"], errors="coerce").dropna()
-    if not tau.empty:
-        ax.axhline(float(tau.iloc[0]), linewidth=2.0, linestyle=":", label="Original ATT")
-
-    ax.axhline(0, linewidth=2.0, linestyle="--", label="Null effect")
-
-    ax.set_xticks(range(len(order)))
-    ax.set_xticklabels(
-        [label_map.get(v, v) for v in order],
-        rotation=10,
-        ha="right",
-        fontsize=15,
-    )
-
-    ax.tick_params(axis="y", labelsize=15)
-    ax.set_ylabel("Estimated ATT", fontsize=11)
-    ax.set_xlabel("Benchmark covariate", fontsize=17)
-    ax.set_title(
-        "Benchmark intervals with RGM extension",
-        fontsize=24,
-        pad=22,
-    )
-
-    ax.legend(
-        loc="upper center",
-        bbox_to_anchor=(0.5, -0.10),
-        ncol=6,
-        frameon=False,
-        fontsize=14,
-        handlelength=2.3,
-        columnspacing=2.1,
-    )
-
-    fig.subplots_adjust(bottom=0.25)
-    save_figures(fig, output_dir, "figure4_benchmark_rgm_extension_paper_style")
 
 # ============================================================
 # Main
@@ -716,7 +589,6 @@ def main() -> None:
 
     make_figure1(args.input, args.output)
     make_figure3(args.input, args.output)
-    make_figure4_rgm_extension(args.input, args.output)
 
     print(f"Done. PNG figures saved to: {args.output.resolve()}")
 
