@@ -153,17 +153,6 @@ Sensitivity analysis 的作用不是消除所有隐藏假设，而是让隐藏�
 
 NHANES 复现部分验证了主结果与论文接近；四个 extension 进一步说明，VBM 的解释依赖于 propensity-score model 的设定、权重方差的稳定性，以及我们选择哪一种 norm 来刻画 hidden perturbation。
 
----
-
-## 可复现性说明
-
-不要提交 `.RData`、`.Rhistory`、`.Rproj.user/` 等 R 本地工作空间文件。这些文件是用户本地环境相关的，可能降低项目的可复现性。
-
-本仓库设计为：干净 clone 后运行下面命令即可重新生成表格和图片：
-
-```r
-source("main.R")
-```
 
 
 

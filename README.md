@@ -153,17 +153,7 @@ Sensitivity analysis makes hidden assumptions visible. This project compares thr
 
 The NHANES replication checks that the main results are close to the paper, while the extensions show that VBM's interpretation depends on propensity-score specification, stable weight variance, and the norm used to measure hidden perturbations.
 
----
 
-## Reproducibility notes
-
-Do not commit R workspace files such as `.RData`, `.Rhistory`, or `.Rproj.user/`. These files are user-specific and can make reproduction harder.
-
-The repository is designed so that a clean checkout can regenerate tables and figures by running:
-
-```r
-source("main.R")
-```
 
 
 
