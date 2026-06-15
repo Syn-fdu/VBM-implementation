@@ -568,10 +568,10 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
 
     # Muted, paper-like palette with enough contrast across methods.
     method_colors = {
-        "MSM": "#D08A1D",
-        "MSM (Qbal)": "#A95C63",
-        "VBM": "#2F6F9F",
-        "VBM, w/ Corr.": "#51458A",
+        "MSM": "#B07A2A",
+        "MSM (Qbal)": "#9A5B64",
+        "VBM": "#4F7F9F",
+        "VBM, w/ Corr.": "#6F5B8D",
     }
 
     fig, ax = plt.subplots(figsize=(14.2, 5.2))
