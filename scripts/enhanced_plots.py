@@ -28,6 +28,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 
 
 # Keep SVG text editable
@@ -557,25 +558,50 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
     method_order = ["MSM", "MSM (Qbal)", "VBM", "VBM, w/ Corr."]
     methods = [m for m in method_order if m in df["method_label"].unique()]
 
-    # Paper-like compact grouping:
-    # smaller offsets keep the four method intervals close within each covariate.
+    # Keep the four method intervals readable within each covariate group.
     offsets = {
-        "MSM": -0.18,
-        "MSM (Qbal)": -0.06,
-        "VBM": 0.06,
-        "VBM, w/ Corr.": 0.18,
+        "MSM": -0.24,
+        "MSM (Qbal)": -0.08,
+        "VBM": 0.08,
+        "VBM, w/ Corr.": 0.24,
     }
 
-    # Muted, paper-like palette. The colors are intentionally not the default
-    # blue/orange/green/red because the default palette looks too bright.
+    # Muted, paper-like palette with enough contrast across methods.
     method_colors = {
-        "MSM": "#D9992B",          # muted ochre
-        "MSM (Qbal)": "#B65C5A",   # muted brick red
-        "VBM": "#4C78A8",          # muted blue
-        "VBM, w/ Corr.": "#3F3B7A",# muted indigo
+        "MSM": "#D08A1D",
+        "MSM (Qbal)": "#A95C63",
+        "VBM": "#2F6F9F",
+        "VBM, w/ Corr.": "#51458A",
     }
 
-    fig, ax = plt.subplots(figsize=(15.2, 5.4))
+    fig, ax = plt.subplots(figsize=(14.2, 5.2))
+
+    for i in range(len(order)):
+        if i % 2 == 0:
+            ax.axvspan(i - 0.5, i + 0.5, color="#F6F7F9", zorder=0)
+
+    tau = pd.to_numeric(df["tau_hat"], errors="coerce").dropna()
+
+    if not tau.empty:
+        ax.axhline(
+            float(tau.iloc[0]),
+            linewidth=1.45,
+            linestyle=(0, (1.5, 2.8)),
+            color="#2F3437",
+            alpha=0.82,
+            label="Original ATT",
+            zorder=1,
+        )
+
+    ax.axhline(
+        0,
+        linewidth=1.2,
+        linestyle=(0, (5.0, 4.0)),
+        color="#7A8288",
+        alpha=0.72,
+        label="Null effect",
+        zorder=1,
+    )
 
     for method in methods:
         sub = df.loc[df["method_label"].eq(method)].sort_values("x_base")
@@ -585,71 +611,57 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
         lower = sub["lower"].to_numpy(dtype=float)
         upper = sub["upper"].to_numpy(dtype=float)
 
-        yerr = np.vstack(
-            [
-                y - lower,
-                upper - y,
-            ]
-        )
+        color = method_colors.get(method, "#4C78A8")
 
-        color = method_colors.get(method, None)
+        for xi, lo, hi in zip(x, lower, upper):
+            ax.plot(
+                [xi, xi],
+                [lo, hi],
+                color=color,
+                linewidth=6.0,
+                alpha=0.16,
+                solid_capstyle="round",
+                zorder=2,
+            )
+            ax.plot(
+                [xi, xi],
+                [lo, hi],
+                color=color,
+                linewidth=1.65,
+                alpha=0.95,
+                solid_capstyle="round",
+                zorder=3,
+            )
 
-        ax.errorbar(
+        ax.scatter(
             x,
             y,
-            yerr=yerr,
-            fmt="o",
+            s=42,
             color=color,
-            ecolor=color,
-            capsize=4.5,
-            capthick=2.2,
-            elinewidth=2.8,
-            linewidth=0,
-            markersize=5.6,
-            markeredgewidth=0,
+            edgecolor="white",
+            linewidth=0.9,
             label=method,
-            zorder=3,
+            zorder=4,
         )
 
-    tau = pd.to_numeric(df["tau_hat"], errors="coerce").dropna()
-
-    if not tau.empty:
-        ax.axhline(
-            float(tau.iloc[0]),
-            linewidth=2.0,
-            linestyle=":",
-            color="#4C78A8",
-            label="Original ATT",
-            zorder=1,
-        )
-
-    ax.axhline(
-        0,
-        linewidth=2.0,
-        linestyle="--",
-        color="#4C78A8",
-        label="Null effect",
-        zorder=1,
-    )
-
-    # Light gridlines mimic the original paper figure and improve readability.
-    ax.grid(True, axis="y", color="0.82", linewidth=0.8)
-    ax.grid(True, axis="x", color="0.88", linewidth=0.7)
+    # Light horizontal gridlines improve scale reading without fighting the intervals.
+    ax.grid(True, axis="y", color="#D6DADF", linewidth=0.8)
     ax.set_axisbelow(True)
 
     # Reduce side padding so the covariate groups occupy the plot area more evenly.
-    ax.set_xlim(-0.45, len(order) - 0.55)
+    ax.set_xlim(-0.5, len(order) - 0.5)
 
     ax.set_xticks(range(len(order)))
 
     ax.set_xticklabels(
         [label_map[v] for v in order],
-        rotation=10,
+        rotation=8,
         ha="right",
-        fontsize=8.5,
+        fontsize=9,
     )
 
     ax.tick_params(axis="y", labelsize=9)
+    ax.tick_params(axis="x", length=0)
 
     ax.set_ylabel("Estimated ATT", fontsize=11)
     ax.set_xlabel("")
@@ -660,17 +672,46 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
         pad=10,
     )
 
-    ax.legend(
-        loc="upper center",
-        bbox_to_anchor=(0.5, -0.13),
-        ncol=6,
-        frameon=False,
-        fontsize=8.3,
-        handlelength=1.6,
-        columnspacing=1.6,
+    for spine in ["top", "right"]:
+        ax.spines[spine].set_visible(False)
+
+    ax.spines["left"].set_color("#2F3437")
+    ax.spines["bottom"].set_color("#2F3437")
+    ax.spines["left"].set_linewidth(0.9)
+    ax.spines["bottom"].set_linewidth(0.9)
+
+    handles = [
+        Line2D([0], [0], color="#2F3437", linewidth=1.45, linestyle=(0, (1.5, 2.8)), label="Original ATT"),
+        Line2D([0], [0], color="#7A8288", linewidth=1.2, linestyle=(0, (5.0, 4.0)), label="Null effect"),
+    ]
+
+    handles.extend(
+        Line2D(
+            [0],
+            [0],
+            marker="o",
+            linestyle="",
+            markerfacecolor=method_colors.get(method, "#4C78A8"),
+            markeredgecolor="white",
+            markeredgewidth=0.9,
+            markersize=6.4,
+            label=method,
+        )
+        for method in methods
     )
 
-    fig.subplots_adjust(bottom=0.25)
+    ax.legend(
+        handles=handles,
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.14),
+        ncol=6,
+        frameon=False,
+        fontsize=8.5,
+        handlelength=1.8,
+        columnspacing=1.5,
+    )
+
+    fig.subplots_adjust(bottom=0.26, top=0.91, left=0.07, right=0.99)
 
     save_figures(fig, output_dir, "figure3_benchmark_paper_style")
 
