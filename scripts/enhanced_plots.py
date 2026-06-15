@@ -175,6 +175,8 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
     bootstrap = read_csv(input_dir, "plot_vbm_bootstrap_curve.csv")
     final_results = read_csv(input_dir, "final_results_vs_paper.csv")
     benchmark = read_csv(input_dir, "plot_covariate_benchmark_vbm_msm.csv")
+    point_bounds_path = input_dir / "plot_vbm_point_bounds_curve.csv"
+    point_bounds = read_csv(input_dir, "plot_vbm_point_bounds_curve.csv") if point_bounds_path.exists() else None
 
     xs = np.round(np.arange(0.0, 0.71, 0.1), 2)
 
@@ -187,6 +189,15 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
     ci_lower = interpolate_curve(boot, "R2", "lower", xs)
     ci_upper = interpolate_curve(boot, "R2", "upper", xs)
     midpoints = (ci_lower + ci_upper) / 2
+
+    if point_bounds is not None and {"R2", "lower", "upper"}.issubset(point_bounds.columns):
+        point_lower = interpolate_curve(point_bounds, "R2", "lower", xs)
+        point_upper = interpolate_curve(point_bounds, "R2", "upper", xs)
+        point_midpoints = (point_lower + point_upper) / 2
+    else:
+        point_lower = ci_lower
+        point_upper = ci_upper
+        point_midpoints = midpoints
 
     r2_star = metric_value(
         final_results,
@@ -233,8 +244,9 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
     fig, ax = plt.subplots(figsize=(14.5, 4.7))
 
     # ---------------- Main plot ----------------
-    ci_color = "#2F6F9F"
+    ci_color = "#8CB6D8"
     point_color = "#1F77B4"
+    point_interval_color = "#3C8DC7"
     null_color = "#7C8794"
     benchmark_color = "#A8C6DA"
     label_color = "#536879"
@@ -260,23 +272,37 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
         zorder=2,
     )
 
+    point_interval_label_used = False
+    for x, lo, hi in zip(xs, point_lower, point_upper):
+        ax.plot(
+            [x, x],
+            [lo, hi],
+            color=point_interval_color,
+            linewidth=7.2,
+            solid_capstyle="butt",
+            alpha=0.92,
+            label="ATT point-estimate bounds" if not point_interval_label_used else "_nolegend_",
+            zorder=2.7,
+        )
+        point_interval_label_used = True
+
     ax.plot(
         xs,
-        midpoints,
+        point_midpoints,
         color=point_color,
         linewidth=1.15,
-        alpha=0.45,
+        alpha=0.38,
         zorder=2.5,
     )
 
     ax.scatter(
         xs,
-        midpoints,
+        point_midpoints,
         s=60,
         color=point_color,
         edgecolor="white",
         linewidth=1.0,
-        label="Bootstrap interval midpoint",
+        label="ATT point estimate",
         zorder=3,
     )
 
@@ -308,8 +334,8 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
             zorder=0,
         )
 
-    ymin = min(ci_lower.min(), -0.15)
-    ymax = max(ci_upper.max(), 4.7)
+    ymin = min(ci_lower.min(), point_lower.min(), -0.15)
+    ymax = max(ci_upper.max(), point_upper.max(), 4.7)
 
     ax.set_xlim(*xlim)
     ax.set_ylim(ymin - 0.12, ymax + 0.45)
@@ -330,7 +356,8 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
     handles, labels = ax.get_legend_handles_labels()
     legend_order = [
         "95% bootstrap CI",
-        "Bootstrap interval midpoint",
+        "ATT point-estimate bounds",
+        "ATT point estimate",
         "Null effect",
     ]
     by_label = dict(zip(labels, handles))

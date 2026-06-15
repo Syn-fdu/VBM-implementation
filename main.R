@@ -309,6 +309,34 @@ bootstrap_results <- bootstrap_output$results
 R2_boot <- bootstrap_output$R2_star
 vbm_bootstrap_stats_summary <- bootstrap_output$bootstrap_stats_summary
 
+vbm_point_bounds_curve <- data.frame(
+  R2 = seq(
+    from = config$R2_min,
+    to = config$R2_max,
+    by = config$R2_coarse_step
+  ),
+  stringsAsFactors = FALSE
+)
+
+vbm_point_bounds_curve$bias_bound <- vapply(
+  vbm_point_bounds_curve$R2,
+  function(r) {
+    bias_bound(
+      w = analysis$w,
+      Y = analysis$Y,
+      Z = analysis$Z,
+      R2 = r,
+      config = config
+    )
+  },
+  numeric(1)
+)
+
+vbm_point_bounds_curve$tau_hat <- tau_hat
+vbm_point_bounds_curve$lower <- tau_hat - vbm_point_bounds_curve$bias_bound
+vbm_point_bounds_curve$upper <- tau_hat + vbm_point_bounds_curve$bias_bound
+vbm_point_bounds_curve$interval_type <- "closed_form_point_estimate_bounds"
+
 cat("Bootstrap R²* =", R2_boot, "\n")
 
 # ------------------------------------------------------------
@@ -474,6 +502,12 @@ write.csv(
 write.csv(
   vbm_bootstrap_plot_data,
   file.path(config$output_tables_dir, "plot_vbm_bootstrap_curve.csv"),
+  row.names = FALSE
+)
+
+write.csv(
+  vbm_point_bounds_curve,
+  file.path(config$output_tables_dir, "plot_vbm_point_bounds_curve.csv"),
   row.names = FALSE
 )
 
