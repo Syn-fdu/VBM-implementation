@@ -291,6 +291,7 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
         point_midpoints,
         color=point_color,
         linewidth=1.15,
+        linestyle="--",
         alpha=0.38,
         zorder=2.5,
     )
