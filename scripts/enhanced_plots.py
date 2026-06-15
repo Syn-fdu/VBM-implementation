@@ -576,10 +576,6 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
 
     fig, ax = plt.subplots(figsize=(14.2, 5.2))
 
-    for i in range(len(order)):
-        if i % 2 == 0:
-            ax.axvspan(i - 0.5, i + 0.5, color="#F6F7F9", zorder=0)
-
     tau = pd.to_numeric(df["tau_hat"], errors="coerce").dropna()
 
     if not tau.empty:
@@ -608,28 +604,54 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
 
         x = sub["x_base"].to_numpy(dtype=float) + offsets.get(method, 0.0)
         y = sub["tau_hat"].to_numpy(dtype=float)
-        lower = sub["lower"].to_numpy(dtype=float)
-        upper = sub["upper"].to_numpy(dtype=float)
+        boot_lower = pd.to_numeric(sub.get("bootstrap_lower", sub["lower"]), errors="coerce").to_numpy(dtype=float)
+        boot_upper = pd.to_numeric(sub.get("bootstrap_upper", sub["upper"]), errors="coerce").to_numpy(dtype=float)
+        det_lower = pd.to_numeric(sub.get("deterministic_lower", sub["lower"]), errors="coerce").to_numpy(dtype=float)
+        det_upper = pd.to_numeric(sub.get("deterministic_upper", sub["upper"]), errors="coerce").to_numpy(dtype=float)
+
+        boot_lower = np.where(np.isfinite(boot_lower), boot_lower, det_lower)
+        boot_upper = np.where(np.isfinite(boot_upper), boot_upper, det_upper)
+        det_lower = np.where(np.isfinite(det_lower), det_lower, boot_lower)
+        det_upper = np.where(np.isfinite(det_upper), det_upper, boot_upper)
 
         color = method_colors.get(method, "#4C78A8")
 
-        for xi, lo, hi in zip(x, lower, upper):
+        cap_width = 0.045
+        for xi, blo, bhi, dlo, dhi in zip(x, boot_lower, boot_upper, det_lower, det_upper):
             ax.plot(
                 [xi, xi],
-                [lo, hi],
+                [blo, bhi],
                 color=color,
-                linewidth=6.0,
-                alpha=0.16,
-                solid_capstyle="round",
+                linewidth=1.65,
+                alpha=0.38,
+                solid_capstyle="butt",
+                zorder=2,
+            )
+            ax.plot(
+                [xi - cap_width, xi + cap_width],
+                [blo, blo],
+                color=color,
+                linewidth=2.2,
+                alpha=0.38,
+                solid_capstyle="butt",
+                zorder=2,
+            )
+            ax.plot(
+                [xi - cap_width, xi + cap_width],
+                [bhi, bhi],
+                color=color,
+                linewidth=2.2,
+                alpha=0.38,
+                solid_capstyle="butt",
                 zorder=2,
             )
             ax.plot(
                 [xi, xi],
-                [lo, hi],
+                [dlo, dhi],
                 color=color,
-                linewidth=1.65,
-                alpha=0.95,
-                solid_capstyle="round",
+                linewidth=7.0,
+                alpha=0.94,
+                solid_capstyle="butt",
                 zorder=3,
             )
 
@@ -683,6 +705,8 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
     handles = [
         Line2D([0], [0], color="#2F3437", linewidth=1.45, linestyle=(0, (1.5, 2.8)), label="Original ATT"),
         Line2D([0], [0], color="#7A8288", linewidth=1.2, linestyle=(0, (5.0, 4.0)), label="Null effect"),
+        Line2D([0], [0], color="#8FAFC8", linewidth=1.65, marker="_", markersize=10, label="95% bootstrap CI"),
+        Line2D([0], [0], color="#4C8FC2", linewidth=7.0, solid_capstyle="butt", label="ATT bounds"),
     ]
 
     handles.extend(
@@ -704,7 +728,7 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
         handles=handles,
         loc="upper center",
         bbox_to_anchor=(0.5, -0.14),
-        ncol=6,
+        ncol=4,
         frameon=False,
         fontsize=8.5,
         handlelength=1.8,
