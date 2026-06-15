@@ -367,11 +367,11 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
         [label for label in legend_order if label in by_label],
         loc="upper center",
         bbox_to_anchor=(0.5, -0.14),
-        ncol=3,
+        ncol=4,
         frameon=False,
         fontsize=8.5,
         handlelength=2.0,
-        columnspacing=2.1,
+        columnspacing=1.7,
     )
 
     # R2* annotation inside the main panel.
