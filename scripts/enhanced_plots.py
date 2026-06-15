@@ -218,32 +218,73 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
         & (bmk["sensitivity_value"] <= xlim[1])
     ].copy()
 
-    fig, ax = plt.subplots(figsize=(14.5, 4.5))
+    # The left-cluster benchmark lines are visually indistinguishable at this scale.
+    # Plot them as a single grouped reference line at R2 = 0.
+    other_vars = {
+        "gender",
+        "age",
+        "income_missing",
+        "cig_smoked",
+        "smoking_history",
+    }
+    left_cluster_benchmark = bmk["variable"].isin(other_vars)
+    bmk["plot_x"] = bmk["sensitivity_value"].where(~left_cluster_benchmark, 0.0)
+
+    fig, ax = plt.subplots(figsize=(14.5, 4.7))
 
     # ---------------- Main plot ----------------
-    ax.vlines(
+    ci_color = "#2F6F9F"
+    point_color = "#1F77B4"
+    null_color = "#7C8794"
+    benchmark_color = "#A8C6DA"
+    label_color = "#2F776E"
+
+    yerr = np.vstack(
+        [
+            midpoints - ci_lower,
+            ci_upper - midpoints,
+        ]
+    )
+
+    ax.errorbar(
         xs,
-        ci_lower,
-        ci_upper,
-        linewidth=3,
-        color="#1f77b4",
-        alpha=0.95,
+        midpoints,
+        yerr=yerr,
+        fmt="none",
+        ecolor=ci_color,
+        elinewidth=1.8,
+        capsize=5.0,
+        capthick=1.45,
+        alpha=0.9,
         label="95% bootstrap CI",
-        zorder=1,
+        zorder=2,
+    )
+
+    ax.plot(
+        xs,
+        midpoints,
+        color=point_color,
+        linewidth=1.15,
+        alpha=0.45,
+        zorder=2.5,
     )
 
     ax.scatter(
         xs,
         midpoints,
-        s=58,
+        s=60,
+        color=point_color,
+        edgecolor="white",
+        linewidth=1.0,
         label="Bootstrap interval midpoint",
         zorder=3,
     )
 
     ax.axhline(
         0,
-        linewidth=2.0,
+        linewidth=1.45,
         linestyle="--",
+        color=null_color,
         label="Null effect",
         zorder=0,
     )
@@ -251,16 +292,19 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
     if np.isfinite(r2_star):
         ax.axvline(
             r2_star,
-            linewidth=2.2,
+            linewidth=1.9,
             linestyle=":",
+            color=point_color,
             zorder=0,
         )
 
-    for _, row in bmk.iterrows():
+    for x in sorted(bmk["plot_x"].dropna().unique()):
         ax.axvline(
-            float(row["sensitivity_value"]),
-            linewidth=1.1,
-            alpha=0.25,
+            float(x),
+            linewidth=1.0,
+            color=benchmark_color,
+            alpha=0.28,
+            linestyle=(0, (1.2, 2.4)),
             zorder=0,
         )
 
@@ -271,7 +315,15 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
     ax.set_ylim(ymin - 0.12, ymax + 0.45)
     y_top = ax.get_ylim()[1]
 
-    ax.set_xlabel("R²", fontsize=11)
+    ax.grid(True, axis="y", color="0.88", linewidth=0.75)
+    ax.grid(False, axis="x")
+    ax.set_axisbelow(True)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["left"].set_linewidth(0.9)
+    ax.spines["bottom"].set_linewidth(0.9)
+
+    ax.set_xlabel(r"$R^2$", fontsize=11)
     ax.set_ylabel("Estimated ATT", fontsize=11)
     ax.tick_params(axis="both", labelsize=9)
 
@@ -282,7 +334,17 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
         y=0.98,
     )
 
+    handles, labels = ax.get_legend_handles_labels()
+    legend_order = [
+        "95% bootstrap CI",
+        "Bootstrap interval midpoint",
+        "Null effect",
+    ]
+    by_label = dict(zip(labels, handles))
+
     ax.legend(
+        [by_label[label] for label in legend_order if label in by_label],
+        [label for label in legend_order if label in by_label],
         loc="upper center",
         bbox_to_anchor=(0.5, -0.14),
         ncol=3,
@@ -292,58 +354,94 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
         columnspacing=2.1,
     )
 
-    # R²* annotation inside the main panel.
+    # R2* annotation inside the main panel.
     if np.isfinite(r2_star):
         ax.annotate(
-            f"R²* = {r2_star:.2f}",
+            rf"$R^{{2*}}$ = {r2_star:.2f}",
             xy=(r2_star, y_top - 0.85),
             xytext=(r2_star + 0.025, y_top - 0.55),
             ha="left",
             va="top",
             fontsize=9.2,
-            bbox=dict(boxstyle="round,pad=0.22", fc="white", ec="0.7", alpha=0.9),
+            bbox=dict(boxstyle="round,pad=0.22", fc="white", ec="0.75", alpha=0.92),
             arrowprops=dict(
                 arrowstyle="-",
                 lw=0.9,
                 alpha=0.7,
+                color="0.35",
             ),
         )
 
-    # Group left-cluster covariates into a single central annotation.
-    other_vars = {
-        "gender",
-        "age",
-        "income_missing",
-        "cig_smoked",
-        "smoking_history",
-    }
+    label_box = dict(
+        boxstyle="round,pad=0.23",
+        fc="white",
+        ec=label_color,
+        lw=0.8,
+        alpha=0.96,
+    )
 
+    label_arrow = dict(
+        arrowstyle="-",
+        lw=0.9,
+        alpha=0.75,
+        color=label_color,
+        shrinkA=2,
+        shrinkB=2,
+        connectionstyle="angle3,angleA=0,angleB=90",
+    )
+
+    def annotate_benchmark_label(
+        text: str,
+        x_anchor: float,
+        x_text: float,
+        y_anchor: float,
+        y_text: float,
+        ha: str,
+        fontsize: float,
+    ) -> None:
+        ax.scatter(
+            [x_anchor],
+            [y_anchor],
+            marker="D",
+            s=32,
+            color=label_color,
+            edgecolor="white",
+            linewidth=0.7,
+            label="_nolegend_",
+            zorder=5,
+        )
+        ax.annotate(
+            text,
+            xy=(x_anchor, y_anchor),
+            xytext=(x_text, y_text),
+            ha=ha,
+            va="center",
+            fontsize=fontsize,
+            color=label_color,
+            arrowprops=label_arrow,
+            bbox=label_box,
+            zorder=6,
+        )
+
+    # Group left-cluster covariates into a single central annotation.
     other = bmk.loc[bmk["variable"].isin(other_vars)].copy()
     mid = bmk.loc[bmk["variable"].isin(["income", "race", "education"])].copy()
 
     # Single label for the left cluster.
     if not other.empty:
-        x_anchor = float(other["sensitivity_value"].median())
-        x_text = max(0.01, x_anchor + 0.01)
-        y_anchor = y_top - 0.34
+        x_anchor = float(other["plot_x"].median())
+        x_text = x_anchor + 0.035
+        y_anchor = y_top - 0.62
         y_text = y_top - 1.02
 
-        ax.annotate(
+        annotate_benchmark_label(
             "Other covariates",
-            xy=(x_anchor, y_anchor),
-            xytext=(x_text, y_text),
+            x_anchor=x_anchor,
+            x_text=x_text,
+            y_anchor=y_anchor,
+            y_text=y_text,
             ha="left",
-            va="center",
             fontsize=8.9,
-            arrowprops=dict(
-                arrowstyle="-",
-                lw=0.9,
-                alpha=0.7,
-                shrinkA=2,
-                shrinkB=2,
-            ),
-            bbox=dict(boxstyle="round,pad=0.18", fc="white", ec="none", alpha=0.82),
-            zorder=4,
         )
 
     # Key benchmark labels inside the main panel.
@@ -355,27 +453,19 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
 
     for _, row in mid.iterrows():
         var = str(row["variable"])
-        x = float(row["sensitivity_value"])
+        x = float(row["plot_x"])
         pos = preferred_positions.get(var, {"dx": 0.01, "dy": 0.8, "ha": "left"})
-        y_anchor = y_top - 0.34
+        y_anchor = y_top - 0.62
         y_text = y_top - pos["dy"]
 
-        ax.annotate(
+        annotate_benchmark_label(
             str(row["label"]),
-            xy=(x, y_anchor),
-            xytext=(x + pos["dx"], y_text),
+            x_anchor=x,
+            x_text=x + pos["dx"],
+            y_anchor=y_anchor,
+            y_text=y_text,
             ha=pos["ha"],
-            va="center",
             fontsize=8.8,
-            arrowprops=dict(
-                arrowstyle="-",
-                lw=0.9,
-                alpha=0.7,
-                shrinkA=2,
-                shrinkB=2,
-            ),
-            bbox=dict(boxstyle="round,pad=0.16", fc="white", ec="none", alpha=0.82),
-            zorder=4,
         )
 
     fig.subplots_adjust(bottom=0.24, top=0.88)
