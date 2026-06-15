@@ -581,10 +581,10 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
     if not tau.empty:
         ax.axhline(
             float(tau.iloc[0]),
-            linewidth=1.45,
+            linewidth=0.9,
             linestyle=(0, (1.5, 2.8)),
             color="#2F3437",
-            alpha=0.82,
+            alpha=0.62,
             label="Original ATT",
             zorder=1,
         )
@@ -697,7 +697,7 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
     ax.spines["bottom"].set_linewidth(0.9)
 
     handles = [
-        Line2D([0], [0], color="#2F3437", linewidth=1.45, linestyle=(0, (1.5, 2.8)), label="Original ATT"),
+        Line2D([0], [0], color="#2F3437", linewidth=0.9, alpha=0.62, linestyle=(0, (1.5, 2.8)), label="Original ATT"),
         Line2D([0], [0], color="#7A8288", linewidth=1.2, linestyle=(0, (5.0, 4.0)), label="Null effect"),
         Line2D([0], [0], color="#8FAFC8", linewidth=1.65, marker="_", markersize=10, label="95% bootstrap CI"),
         Line2D([0], [0], color="#4C8FC2", linewidth=7.0, solid_capstyle="butt", label="ATT bounds"),
