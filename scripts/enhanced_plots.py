@@ -551,8 +551,9 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
 
     df["method_label"] = df["method"].map(normalize_method)
 
+    group_spacing = 0.68
     df["x_base"] = df["variable"].apply(
-        lambda v: order.index(v) if v in order else len(order)
+        lambda v: (order.index(v) if v in order else len(order)) * group_spacing
     )
 
     method_order = ["MSM", "MSM (Qbal)", "VBM", "VBM, w/ Corr."]
@@ -560,10 +561,10 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
 
     # Keep the four method intervals readable within each covariate group.
     offsets = {
-        "MSM": -0.16,
-        "MSM (Qbal)": -0.055,
-        "VBM": 0.055,
-        "VBM, w/ Corr.": 0.16,
+        "MSM": -0.108,
+        "MSM (Qbal)": -0.037,
+        "VBM": 0.037,
+        "VBM, w/ Corr.": 0.108,
     }
 
     # Muted, paper-like palette with enough contrast across methods.
@@ -574,7 +575,7 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
         "VBM, w/ Corr.": "#6F5B8D",
     }
 
-    fig, ax = plt.subplots(figsize=(14.2, 5.2))
+    fig, ax = plt.subplots(figsize=(12.9, 5.35))
 
     tau = pd.to_numeric(df["tau_hat"], errors="coerce").dropna()
 
@@ -591,12 +592,12 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
 
     ax.axhline(
         0,
-        linewidth=1.2,
-        linestyle=(0, (5.0, 4.0)),
-        color="#7A8288",
-        alpha=0.72,
+        linewidth=1.35,
+        linestyle="-",
+        color="#111111",
+        alpha=1.0,
         label="Null effect",
-        zorder=1,
+        zorder=2,
     )
 
     for method in methods:
@@ -616,13 +617,13 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
 
         color = method_colors.get(method, "#4C78A8")
 
-        cap_width = 0.045
+        cap_width = 0.052
         for xi, blo, bhi, dlo, dhi in zip(x, boot_lower, boot_upper, det_lower, det_upper):
             ax.plot(
                 [xi, xi],
                 [blo, bhi],
                 color=color,
-                linewidth=1.65,
+                linewidth=2.25,
                 alpha=0.38,
                 solid_capstyle="butt",
                 zorder=2,
@@ -631,7 +632,7 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
                 [xi - cap_width, xi + cap_width],
                 [blo, blo],
                 color=color,
-                linewidth=2.2,
+                linewidth=1.8,
                 alpha=0.38,
                 solid_capstyle="butt",
                 zorder=2,
@@ -640,7 +641,7 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
                 [xi - cap_width, xi + cap_width],
                 [bhi, bhi],
                 color=color,
-                linewidth=2.2,
+                linewidth=1.8,
                 alpha=0.38,
                 solid_capstyle="butt",
                 zorder=2,
@@ -666,39 +667,40 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
             zorder=4,
         )
 
-    # Light horizontal gridlines improve scale reading without fighting the intervals.
-    ax.grid(True, axis="y", color="#D6DADF", linewidth=0.8)
+    # Paper-style gridlines: visible enough to structure the panel, but still secondary.
+    ax.grid(True, axis="y", color="#C7C9CC", linewidth=1.05)
+    ax.grid(True, axis="x", color="#C7C9CC", linewidth=1.05)
     ax.set_axisbelow(True)
 
     # Reduce side padding so the covariate groups occupy the plot area more evenly.
-    ax.set_xlim(-0.5, len(order) - 0.5)
+    ax.set_xlim(-0.5 * group_spacing, (len(order) - 0.5) * group_spacing)
 
-    ax.set_xticks(range(len(order)))
+    ax.set_xticks([i * group_spacing for i in range(len(order))])
 
     ax.set_xticklabels(
         [label_map[v] for v in order],
-        rotation=8,
-        ha="right",
-        fontsize=9,
+        rotation=0,
+        ha="center",
+        fontsize=9.3,
+        fontfamily="serif",
     )
 
-    ax.tick_params(axis="y", labelsize=9)
+    ax.set_yticks([0, 1, 2, 3])
+    ax.tick_params(axis="y", labelsize=9.5)
     ax.tick_params(axis="x", length=0)
 
-    ax.set_ylabel("Estimated ATT", fontsize=11)
+    ax.set_ylabel("Estimated ATT", fontsize=11.5, fontfamily="serif")
     ax.set_xlabel("")
 
     for spine in ["top", "right"]:
         ax.spines[spine].set_visible(False)
 
-    ax.spines["left"].set_color("#2F3437")
-    ax.spines["bottom"].set_color("#2F3437")
-    ax.spines["left"].set_linewidth(0.9)
-    ax.spines["bottom"].set_linewidth(0.9)
+    ax.spines["left"].set_visible(False)
+    ax.spines["bottom"].set_visible(False)
 
     handles = [
         Line2D([0], [0], color="#2F3437", linewidth=0.9, alpha=0.62, linestyle=(0, (1.5, 2.8)), label="Original ATT"),
-        Line2D([0], [0], color="#7A8288", linewidth=1.2, linestyle=(0, (5.0, 4.0)), label="Null effect"),
+        Line2D([0], [0], color="#111111", linewidth=1.35, linestyle="-", label="Null effect"),
         Line2D([0], [0], color="#8FAFC8", linewidth=1.65, marker="_", markersize=10, label="95% bootstrap CI"),
         Line2D([0], [0], color="#4C8FC2", linewidth=7.0, solid_capstyle="butt", label="ATT bounds"),
     ]
