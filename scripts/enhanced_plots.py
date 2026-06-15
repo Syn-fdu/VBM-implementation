@@ -722,11 +722,11 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
         handles=handles,
         loc="upper center",
         bbox_to_anchor=(0.5, -0.14),
-        ncol=4,
+        ncol=len(handles),
         frameon=False,
-        fontsize=8.5,
-        handlelength=1.8,
-        columnspacing=1.5,
+        fontsize=7.8,
+        handlelength=1.35,
+        columnspacing=0.95,
     )
 
     fig.subplots_adjust(bottom=0.26, top=0.97, left=0.07, right=0.99)
