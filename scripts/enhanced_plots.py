@@ -237,7 +237,7 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
     point_color = "#1F77B4"
     null_color = "#7C8794"
     benchmark_color = "#A8C6DA"
-    label_color = "#2F776E"
+    label_color = "#536879"
 
     yerr = np.vstack(
         [
@@ -327,13 +327,6 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
     ax.set_ylabel("Estimated ATT", fontsize=11)
     ax.tick_params(axis="both", labelsize=9)
 
-    fig.suptitle(
-        "VBM sensitivity curve",
-        fontsize=12,
-        fontweight="bold",
-        y=0.98,
-    )
-
     handles, labels = ax.get_legend_handles_labels()
     legend_order = [
         "95% bootstrap CI",
@@ -377,13 +370,13 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
         fc="white",
         ec=label_color,
         lw=0.8,
-        alpha=0.96,
+        alpha=0.94,
     )
 
     label_arrow = dict(
         arrowstyle="-",
         lw=0.9,
-        alpha=0.75,
+        alpha=0.62,
         color=label_color,
         shrinkA=2,
         shrinkB=2,
@@ -446,16 +439,19 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
 
     # Key benchmark labels inside the main panel.
     preferred_positions = {
-        "income": {"dx": -0.012, "dy": 0.92, "ha": "right"},
-        "race": {"dx": 0.005, "dy": 0.92, "ha": "left"},
-        "education": {"dx": -0.01, "dy": 0.58, "ha": "left"},
+        "income": {"dx": -0.012, "dy": 0.92, "anchor_dy": 0.62, "ha": "right"},
+        "race": {"dx": 0.005, "dy": 1.26, "anchor_dy": 0.94, "ha": "left"},
+        "education": {"dx": -0.01, "dy": 0.58, "anchor_dy": 0.62, "ha": "left"},
     }
 
     for _, row in mid.iterrows():
         var = str(row["variable"])
         x = float(row["plot_x"])
-        pos = preferred_positions.get(var, {"dx": 0.01, "dy": 0.8, "ha": "left"})
-        y_anchor = y_top - 0.62
+        pos = preferred_positions.get(
+            var,
+            {"dx": 0.01, "dy": 0.8, "anchor_dy": 0.62, "ha": "left"},
+        )
+        y_anchor = y_top - pos["anchor_dy"]
         y_text = y_top - pos["dy"]
 
         annotate_benchmark_label(
@@ -468,7 +464,7 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
             fontsize=8.8,
         )
 
-    fig.subplots_adjust(bottom=0.24, top=0.88)
+    fig.subplots_adjust(bottom=0.24, top=0.97)
 
     save_figures(fig, output_dir, "figure1_vbm_paper_style")
 
