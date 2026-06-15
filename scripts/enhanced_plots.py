@@ -560,10 +560,10 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
 
     # Keep the four method intervals readable within each covariate group.
     offsets = {
-        "MSM": -0.24,
-        "MSM (Qbal)": -0.08,
-        "VBM": 0.08,
-        "VBM, w/ Corr.": 0.24,
+        "MSM": -0.16,
+        "MSM (Qbal)": -0.055,
+        "VBM": 0.055,
+        "VBM, w/ Corr.": 0.16,
     }
 
     # Muted, paper-like palette with enough contrast across methods.
@@ -688,12 +688,6 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
     ax.set_ylabel("Estimated ATT", fontsize=11)
     ax.set_xlabel("")
 
-    ax.set_title(
-        "Benchmark intervals comparison",
-        fontsize=12,
-        pad=10,
-    )
-
     for spine in ["top", "right"]:
         ax.spines[spine].set_visible(False)
 
@@ -735,7 +729,7 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
         columnspacing=1.5,
     )
 
-    fig.subplots_adjust(bottom=0.26, top=0.91, left=0.07, right=0.99)
+    fig.subplots_adjust(bottom=0.26, top=0.97, left=0.07, right=0.99)
 
     save_figures(fig, output_dir, "figure3_benchmark_paper_style")
 
