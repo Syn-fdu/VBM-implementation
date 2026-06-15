@@ -28,6 +28,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 
 
 # Keep SVG text editable
@@ -175,6 +176,8 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
     bootstrap = read_csv(input_dir, "plot_vbm_bootstrap_curve.csv")
     final_results = read_csv(input_dir, "final_results_vs_paper.csv")
     benchmark = read_csv(input_dir, "plot_covariate_benchmark_vbm_msm.csv")
+    point_bounds_path = input_dir / "plot_vbm_point_bounds_curve.csv"
+    point_bounds = read_csv(input_dir, "plot_vbm_point_bounds_curve.csv") if point_bounds_path.exists() else None
 
     xs = np.round(np.arange(0.0, 0.71, 0.1), 2)
 
@@ -187,6 +190,15 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
     ci_lower = interpolate_curve(boot, "R2", "lower", xs)
     ci_upper = interpolate_curve(boot, "R2", "upper", xs)
     midpoints = (ci_lower + ci_upper) / 2
+
+    if point_bounds is not None and {"R2", "lower", "upper"}.issubset(point_bounds.columns):
+        point_lower = interpolate_curve(point_bounds, "R2", "lower", xs)
+        point_upper = interpolate_curve(point_bounds, "R2", "upper", xs)
+        point_midpoints = (point_lower + point_upper) / 2
+    else:
+        point_lower = ci_lower
+        point_upper = ci_upper
+        point_midpoints = midpoints
 
     r2_star = metric_value(
         final_results,
@@ -218,98 +230,8 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
         & (bmk["sensitivity_value"] <= xlim[1])
     ].copy()
 
-    fig, ax = plt.subplots(figsize=(14.5, 4.5))
-
-    # ---------------- Main plot ----------------
-    ax.vlines(
-        xs,
-        ci_lower,
-        ci_upper,
-        linewidth=3,
-        color="#1f77b4",
-        alpha=0.95,
-        label="95% bootstrap CI",
-        zorder=1,
-    )
-
-    ax.scatter(
-        xs,
-        midpoints,
-        s=58,
-        label="Bootstrap interval midpoint",
-        zorder=3,
-    )
-
-    ax.axhline(
-        0,
-        linewidth=2.0,
-        linestyle="--",
-        label="Null effect",
-        zorder=0,
-    )
-
-    if np.isfinite(r2_star):
-        ax.axvline(
-            r2_star,
-            linewidth=2.2,
-            linestyle=":",
-            zorder=0,
-        )
-
-    for _, row in bmk.iterrows():
-        ax.axvline(
-            float(row["sensitivity_value"]),
-            linewidth=1.1,
-            alpha=0.25,
-            zorder=0,
-        )
-
-    ymin = min(ci_lower.min(), -0.15)
-    ymax = max(ci_upper.max(), 4.7)
-
-    ax.set_xlim(*xlim)
-    ax.set_ylim(ymin - 0.12, ymax + 0.45)
-    y_top = ax.get_ylim()[1]
-
-    ax.set_xlabel("R²", fontsize=11)
-    ax.set_ylabel("Estimated ATT", fontsize=11)
-    ax.tick_params(axis="both", labelsize=9)
-
-    fig.suptitle(
-        "VBM sensitivity curve",
-        fontsize=12,
-        fontweight="bold",
-        y=0.98,
-    )
-
-    ax.legend(
-        loc="upper center",
-        bbox_to_anchor=(0.5, -0.14),
-        ncol=3,
-        frameon=False,
-        fontsize=8.5,
-        handlelength=2.0,
-        columnspacing=2.1,
-    )
-
-    # R²* annotation inside the main panel.
-    if np.isfinite(r2_star):
-        ax.annotate(
-            f"R²* = {r2_star:.2f}",
-            xy=(r2_star, y_top - 0.85),
-            xytext=(r2_star + 0.025, y_top - 0.55),
-            ha="left",
-            va="top",
-            fontsize=9.2,
-            bbox=dict(boxstyle="round,pad=0.22", fc="white", ec="0.7", alpha=0.9),
-            arrowprops=dict(
-                arrowstyle="-",
-                lw=0.9,
-                alpha=0.7,
-            ),
-        )
-
-    # Group left-cluster covariates into a single central annotation.
+    # The left-cluster benchmark lines are visually indistinguishable at this scale.
+    # Plot them as a single grouped reference line at R2 = 0.
     other_vars = {
         "gender",
         "age",
@@ -317,68 +239,261 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
         "cig_smoked",
         "smoking_history",
     }
+    left_cluster_benchmark = bmk["variable"].isin(other_vars)
+    bmk["plot_x"] = bmk["sensitivity_value"].where(~left_cluster_benchmark, 0.0)
 
+    fig, ax = plt.subplots(figsize=(14.5, 4.7))
+
+    # ---------------- Main plot ----------------
+    ci_color = "#8CB6D8"
+    point_color = "#1F77B4"
+    point_interval_color = "#3C8DC7"
+    null_color = "#7C8794"
+    benchmark_color = "#A8C6DA"
+    label_color = "#536879"
+
+    yerr = np.vstack(
+        [
+            midpoints - ci_lower,
+            ci_upper - midpoints,
+        ]
+    )
+
+    ax.errorbar(
+        xs,
+        midpoints,
+        yerr=yerr,
+        fmt="none",
+        ecolor=ci_color,
+        elinewidth=1.8,
+        capsize=5.0,
+        capthick=1.45,
+        alpha=0.9,
+        label="95% bootstrap CI",
+        zorder=2,
+    )
+
+    point_interval_label_used = False
+    for x, lo, hi in zip(xs, point_lower, point_upper):
+        ax.plot(
+            [x, x],
+            [lo, hi],
+            color=point_interval_color,
+            linewidth=7.2,
+            solid_capstyle="butt",
+            alpha=0.92,
+            label="ATT point-estimate bounds" if not point_interval_label_used else "_nolegend_",
+            zorder=2.7,
+        )
+        point_interval_label_used = True
+
+    ax.plot(
+        xs,
+        point_midpoints,
+        color=point_color,
+        linewidth=1.15,
+        linestyle="--",
+        alpha=0.38,
+        zorder=2.5,
+    )
+
+    ax.scatter(
+        xs,
+        point_midpoints,
+        s=60,
+        color=point_color,
+        edgecolor="white",
+        linewidth=1.0,
+        label="ATT point estimate",
+        zorder=3,
+    )
+
+    ax.axhline(
+        0,
+        linewidth=1.45,
+        linestyle="--",
+        color=null_color,
+        label="Null effect",
+        zorder=0,
+    )
+
+    if np.isfinite(r2_star):
+        ax.axvline(
+            r2_star,
+            linewidth=1.9,
+            linestyle=":",
+            color=point_color,
+            zorder=0,
+        )
+
+    for x in sorted(bmk["plot_x"].dropna().unique()):
+        ax.axvline(
+            float(x),
+            linewidth=1.0,
+            color=benchmark_color,
+            alpha=0.28,
+            linestyle=(0, (1.2, 2.4)),
+            zorder=0,
+        )
+
+    ymin = min(ci_lower.min(), point_lower.min(), -0.15)
+    ymax = max(ci_upper.max(), point_upper.max(), 4.7)
+
+    ax.set_xlim(*xlim)
+    ax.set_ylim(ymin - 0.12, ymax + 0.45)
+    y_top = ax.get_ylim()[1]
+
+    ax.grid(True, axis="y", color="0.88", linewidth=0.75)
+    ax.grid(False, axis="x")
+    ax.set_axisbelow(True)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["left"].set_linewidth(0.9)
+    ax.spines["bottom"].set_linewidth(0.9)
+
+    ax.set_xlabel(r"$R^2$", fontsize=11)
+    ax.set_ylabel("Estimated ATT", fontsize=11)
+    ax.tick_params(axis="both", labelsize=9)
+
+    handles, labels = ax.get_legend_handles_labels()
+    legend_order = [
+        "95% bootstrap CI",
+        "ATT point-estimate bounds",
+        "ATT point estimate",
+        "Null effect",
+    ]
+    by_label = dict(zip(labels, handles))
+
+    ax.legend(
+        [by_label[label] for label in legend_order if label in by_label],
+        [label for label in legend_order if label in by_label],
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.14),
+        ncol=4,
+        frameon=False,
+        fontsize=8.5,
+        handlelength=2.0,
+        columnspacing=1.7,
+    )
+
+    # R2* annotation inside the main panel.
+    if np.isfinite(r2_star):
+        ax.annotate(
+            rf"$R^{{2*}}$ = {r2_star:.2f}",
+            xy=(r2_star, y_top - 0.85),
+            xytext=(r2_star + 0.025, y_top - 0.55),
+            ha="left",
+            va="top",
+            fontsize=9.2,
+            bbox=dict(boxstyle="round,pad=0.22", fc="white", ec="0.75", alpha=0.92),
+            arrowprops=dict(
+                arrowstyle="-",
+                lw=0.9,
+                alpha=0.7,
+                color="0.35",
+            ),
+        )
+
+    label_box = dict(
+        boxstyle="round,pad=0.23",
+        fc="white",
+        ec=label_color,
+        lw=0.8,
+        alpha=0.94,
+    )
+
+    label_arrow = dict(
+        arrowstyle="-",
+        lw=0.9,
+        alpha=0.62,
+        color=label_color,
+        shrinkA=2,
+        shrinkB=2,
+        connectionstyle="angle3,angleA=0,angleB=90",
+    )
+
+    def annotate_benchmark_label(
+        text: str,
+        x_anchor: float,
+        x_text: float,
+        y_anchor: float,
+        y_text: float,
+        ha: str,
+        fontsize: float,
+    ) -> None:
+        ax.scatter(
+            [x_anchor],
+            [y_anchor],
+            marker="D",
+            s=32,
+            color=label_color,
+            edgecolor="white",
+            linewidth=0.7,
+            label="_nolegend_",
+            zorder=5,
+        )
+        ax.annotate(
+            text,
+            xy=(x_anchor, y_anchor),
+            xytext=(x_text, y_text),
+            ha=ha,
+            va="center",
+            fontsize=fontsize,
+            color=label_color,
+            arrowprops=label_arrow,
+            bbox=label_box,
+            zorder=6,
+        )
+
+    # Group left-cluster covariates into a single central annotation.
     other = bmk.loc[bmk["variable"].isin(other_vars)].copy()
     mid = bmk.loc[bmk["variable"].isin(["income", "race", "education"])].copy()
 
     # Single label for the left cluster.
     if not other.empty:
-        x_anchor = float(other["sensitivity_value"].median())
-        x_text = max(0.01, x_anchor + 0.01)
-        y_anchor = y_top - 0.34
+        x_anchor = float(other["plot_x"].median())
+        x_text = x_anchor + 0.035
+        y_anchor = y_top - 0.62
         y_text = y_top - 1.02
 
-        ax.annotate(
+        annotate_benchmark_label(
             "Other covariates",
-            xy=(x_anchor, y_anchor),
-            xytext=(x_text, y_text),
+            x_anchor=x_anchor,
+            x_text=x_text,
+            y_anchor=y_anchor,
+            y_text=y_text,
             ha="left",
-            va="center",
             fontsize=8.9,
-            arrowprops=dict(
-                arrowstyle="-",
-                lw=0.9,
-                alpha=0.7,
-                shrinkA=2,
-                shrinkB=2,
-            ),
-            bbox=dict(boxstyle="round,pad=0.18", fc="white", ec="none", alpha=0.82),
-            zorder=4,
         )
 
     # Key benchmark labels inside the main panel.
     preferred_positions = {
-        "income": {"dx": -0.012, "dy": 0.92, "ha": "right"},
-        "race": {"dx": 0.005, "dy": 0.92, "ha": "left"},
-        "education": {"dx": -0.01, "dy": 0.58, "ha": "left"},
+        "income": {"dx": -0.012, "dy": 1.42, "anchor_dy": 1.18, "ha": "right"},
+        "race": {"dx": 0.005, "dy": 1.26, "anchor_dy": 0.94, "ha": "left"},
+        "education": {"dx": -0.02, "dy": 0.42, "anchor_dy": 0.76, "ha": "right"},
     }
 
     for _, row in mid.iterrows():
         var = str(row["variable"])
-        x = float(row["sensitivity_value"])
-        pos = preferred_positions.get(var, {"dx": 0.01, "dy": 0.8, "ha": "left"})
-        y_anchor = y_top - 0.34
+        x = float(row["plot_x"])
+        pos = preferred_positions.get(
+            var,
+            {"dx": 0.01, "dy": 0.8, "anchor_dy": 0.62, "ha": "left"},
+        )
+        y_anchor = y_top - pos["anchor_dy"]
         y_text = y_top - pos["dy"]
 
-        ax.annotate(
+        annotate_benchmark_label(
             str(row["label"]),
-            xy=(x, y_anchor),
-            xytext=(x + pos["dx"], y_text),
+            x_anchor=x,
+            x_text=x + pos["dx"],
+            y_anchor=y_anchor,
+            y_text=y_text,
             ha=pos["ha"],
-            va="center",
             fontsize=8.8,
-            arrowprops=dict(
-                arrowstyle="-",
-                lw=0.9,
-                alpha=0.7,
-                shrinkA=2,
-                shrinkB=2,
-            ),
-            bbox=dict(boxstyle="round,pad=0.16", fc="white", ec="none", alpha=0.82),
-            zorder=4,
         )
 
-    fig.subplots_adjust(bottom=0.24, top=0.88)
+    fig.subplots_adjust(bottom=0.24, top=0.97)
 
     save_figures(fig, output_dir, "figure1_vbm_paper_style")
 
@@ -436,127 +551,187 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
 
     df["method_label"] = df["method"].map(normalize_method)
 
+    group_spacing = 0.68
     df["x_base"] = df["variable"].apply(
-        lambda v: order.index(v) if v in order else len(order)
+        lambda v: (order.index(v) if v in order else len(order)) * group_spacing
     )
 
     method_order = ["MSM", "MSM (Qbal)", "VBM", "VBM, w/ Corr."]
     methods = [m for m in method_order if m in df["method_label"].unique()]
 
-    # Paper-like compact grouping:
-    # smaller offsets keep the four method intervals close within each covariate.
+    # Keep the four method intervals readable within each covariate group.
     offsets = {
-        "MSM": -0.18,
-        "MSM (Qbal)": -0.06,
-        "VBM": 0.06,
-        "VBM, w/ Corr.": 0.18,
+        "MSM": -0.108,
+        "MSM (Qbal)": -0.037,
+        "VBM": 0.037,
+        "VBM, w/ Corr.": 0.108,
     }
 
-    # Muted, paper-like palette. The colors are intentionally not the default
-    # blue/orange/green/red because the default palette looks too bright.
+    # Muted, paper-like palette with enough contrast across methods.
     method_colors = {
-        "MSM": "#D9992B",          # muted ochre
-        "MSM (Qbal)": "#B65C5A",   # muted brick red
-        "VBM": "#4C78A8",          # muted blue
-        "VBM, w/ Corr.": "#3F3B7A",# muted indigo
+        "MSM": "#F2A13A",
+        "MSM (Qbal)": "#A01820",
+        "VBM": "#5B9BD5",
+        "VBM, w/ Corr.": "#33308C",
     }
 
-    fig, ax = plt.subplots(figsize=(15.2, 5.4))
-
-    for method in methods:
-        sub = df.loc[df["method_label"].eq(method)].sort_values("x_base")
-
-        x = sub["x_base"].to_numpy(dtype=float) + offsets.get(method, 0.0)
-        y = sub["tau_hat"].to_numpy(dtype=float)
-        lower = sub["lower"].to_numpy(dtype=float)
-        upper = sub["upper"].to_numpy(dtype=float)
-
-        yerr = np.vstack(
-            [
-                y - lower,
-                upper - y,
-            ]
-        )
-
-        color = method_colors.get(method, None)
-
-        ax.errorbar(
-            x,
-            y,
-            yerr=yerr,
-            fmt="o",
-            color=color,
-            ecolor=color,
-            capsize=4.5,
-            capthick=2.2,
-            elinewidth=2.8,
-            linewidth=0,
-            markersize=5.6,
-            markeredgewidth=0,
-            label=method,
-            zorder=3,
-        )
+    fig, ax = plt.subplots(figsize=(12.9, 5.35))
 
     tau = pd.to_numeric(df["tau_hat"], errors="coerce").dropna()
 
     if not tau.empty:
         ax.axhline(
             float(tau.iloc[0]),
-            linewidth=2.0,
-            linestyle=":",
-            color="#4C78A8",
+            linewidth=0.9,
+            linestyle=(0, (1.5, 2.8)),
+            color="#2F3437",
+            alpha=0.62,
             label="Original ATT",
             zorder=1,
         )
 
     ax.axhline(
         0,
-        linewidth=2.0,
-        linestyle="--",
-        color="#4C78A8",
+        linewidth=1.35,
+        linestyle="-",
+        color="#111111",
+        alpha=1.0,
         label="Null effect",
-        zorder=1,
+        zorder=2,
     )
 
-    # Light gridlines mimic the original paper figure and improve readability.
-    ax.grid(True, axis="y", color="0.82", linewidth=0.8)
-    ax.grid(True, axis="x", color="0.88", linewidth=0.7)
+    for method in methods:
+        sub = df.loc[df["method_label"].eq(method)].sort_values("x_base")
+
+        x = sub["x_base"].to_numpy(dtype=float) + offsets.get(method, 0.0)
+        y = sub["tau_hat"].to_numpy(dtype=float)
+        boot_lower = pd.to_numeric(sub.get("bootstrap_lower", sub["lower"]), errors="coerce").to_numpy(dtype=float)
+        boot_upper = pd.to_numeric(sub.get("bootstrap_upper", sub["upper"]), errors="coerce").to_numpy(dtype=float)
+        det_lower = pd.to_numeric(sub.get("deterministic_lower", sub["lower"]), errors="coerce").to_numpy(dtype=float)
+        det_upper = pd.to_numeric(sub.get("deterministic_upper", sub["upper"]), errors="coerce").to_numpy(dtype=float)
+
+        boot_lower = np.where(np.isfinite(boot_lower), boot_lower, det_lower)
+        boot_upper = np.where(np.isfinite(boot_upper), boot_upper, det_upper)
+        det_lower = np.where(np.isfinite(det_lower), det_lower, boot_lower)
+        det_upper = np.where(np.isfinite(det_upper), det_upper, boot_upper)
+
+        color = method_colors.get(method, "#4C78A8")
+
+        cap_width = 0.052
+        for xi, blo, bhi, dlo, dhi in zip(x, boot_lower, boot_upper, det_lower, det_upper):
+            ax.plot(
+                [xi, xi],
+                [blo, bhi],
+                color=color,
+                linewidth=2.25,
+                alpha=0.38,
+                solid_capstyle="butt",
+                zorder=2,
+            )
+            ax.plot(
+                [xi - cap_width, xi + cap_width],
+                [blo, blo],
+                color=color,
+                linewidth=1.8,
+                alpha=0.38,
+                solid_capstyle="butt",
+                zorder=2,
+            )
+            ax.plot(
+                [xi - cap_width, xi + cap_width],
+                [bhi, bhi],
+                color=color,
+                linewidth=1.8,
+                alpha=0.38,
+                solid_capstyle="butt",
+                zorder=2,
+            )
+            ax.plot(
+                [xi, xi],
+                [dlo, dhi],
+                color=color,
+                linewidth=7.0,
+                alpha=0.94,
+                solid_capstyle="butt",
+                zorder=3,
+            )
+
+        ax.scatter(
+            x,
+            y,
+            s=42,
+            color=color,
+            edgecolor="white",
+            linewidth=0.9,
+            label=method,
+            zorder=4,
+        )
+
+    # Paper-style gridlines: visible enough to structure the panel, but still secondary.
+    ax.grid(True, axis="y", color="#C7C9CC", linewidth=1.05)
+    ax.grid(True, axis="x", color="#C7C9CC", linewidth=1.05)
     ax.set_axisbelow(True)
 
     # Reduce side padding so the covariate groups occupy the plot area more evenly.
-    ax.set_xlim(-0.45, len(order) - 0.55)
+    ax.set_xlim(-0.5 * group_spacing, (len(order) - 0.5) * group_spacing)
 
-    ax.set_xticks(range(len(order)))
+    ax.set_xticks([i * group_spacing for i in range(len(order))])
 
     ax.set_xticklabels(
         [label_map[v] for v in order],
-        rotation=10,
-        ha="right",
-        fontsize=8.5,
+        rotation=0,
+        ha="center",
+        fontsize=9.3,
+        fontfamily="serif",
     )
 
-    ax.tick_params(axis="y", labelsize=9)
+    ax.set_yticks([0, 1, 2, 3])
+    ax.tick_params(axis="y", labelsize=9.5)
+    ax.tick_params(axis="x", length=0)
 
-    ax.set_ylabel("Estimated ATT", fontsize=11)
+    ax.set_ylabel("Estimated ATT", fontsize=11.5, fontfamily="serif")
     ax.set_xlabel("")
 
-    ax.set_title(
-        "Benchmark intervals comparison",
-        fontsize=12,
-        pad=10,
+    for spine in ["top", "right"]:
+        ax.spines[spine].set_visible(False)
+
+    ax.spines["left"].set_visible(False)
+    ax.spines["bottom"].set_visible(False)
+
+    handles = [
+        Line2D([0], [0], color="#2F3437", linewidth=0.9, alpha=0.62, linestyle=(0, (1.5, 2.8)), label="Original ATT"),
+        Line2D([0], [0], color="#111111", linewidth=1.35, linestyle="-", label="Null effect"),
+        Line2D([0], [0], color="#8FAFC8", linewidth=1.65, marker="_", markersize=10, label="95% bootstrap CI"),
+        Line2D([0], [0], color="#4C8FC2", linewidth=7.0, solid_capstyle="butt", label="ATT bounds"),
+    ]
+
+    handles.extend(
+        Line2D(
+            [0],
+            [0],
+            marker="o",
+            linestyle="",
+            markerfacecolor=method_colors.get(method, "#4C78A8"),
+            markeredgecolor="white",
+            markeredgewidth=0.9,
+            markersize=6.4,
+            label=method,
+        )
+        for method in methods
     )
 
     ax.legend(
+        handles=handles,
         loc="upper center",
-        bbox_to_anchor=(0.5, -0.13),
-        ncol=6,
+        bbox_to_anchor=(0.5, -0.14),
+        ncol=len(handles),
         frameon=False,
-        fontsize=8.3,
-        handlelength=1.6,
-        columnspacing=1.6,
+        fontsize=7.8,
+        handlelength=1.35,
+        columnspacing=0.95,
     )
 
-    fig.subplots_adjust(bottom=0.25)
+    fig.subplots_adjust(bottom=0.26, top=0.97, left=0.07, right=0.99)
 
     save_figures(fig, output_dir, "figure3_benchmark_paper_style")
 

@@ -3,7 +3,9 @@
 # Low-dimensional PS encoding + explicit encoding diagnostics
 # ============================================================
 
-library(tidyverse)
+if (requireNamespace("tidyverse", quietly = TRUE)) {
+  suppressPackageStartupMessages(library(tidyverse))
+}
 
 .config_value <- function(config, name, default) {
   if (is.null(config) || is.null(config[[name]])) {
