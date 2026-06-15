@@ -439,7 +439,7 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
 
     # Key benchmark labels inside the main panel.
     preferred_positions = {
-        "income": {"dx": -0.012, "dy": 0.92, "anchor_dy": 0.62, "ha": "right"},
+        "income": {"dx": -0.012, "dy": 1.42, "anchor_dy": 1.18, "ha": "right"},
         "race": {"dx": 0.005, "dy": 1.26, "anchor_dy": 0.94, "ha": "left"},
         "education": {"dx": -0.02, "dy": 0.42, "anchor_dy": 0.76, "ha": "right"},
     }
