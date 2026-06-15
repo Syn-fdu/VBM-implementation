@@ -105,7 +105,7 @@ Important defaults:
 
 ```r
 run_main_enhanced_plots = TRUE
-run_version10_extensions = TRUE
+run_extensions = TRUE
 run_extension_01_hidden_strength_vbm_msm = TRUE
 run_extension_02_vbm_ps_misspecification = TRUE
 run_extension_03_good_overlap_instability = TRUE

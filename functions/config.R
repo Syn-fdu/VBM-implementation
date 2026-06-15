@@ -118,8 +118,7 @@ config <- list(
   msm_benchmark_bootstrap_B = 1000,
   msm_benchmark_bootstrap_seed_offset = 9100,
 
-  # Backward-compatible fallback. If benchmark_groups is removed, these
-  # single terms will be used.
+  # Fallback single-term benchmark list used only when benchmark_groups is unavailable.
   benchmark_vars = c(
     "gender",
     "age",
@@ -131,13 +130,11 @@ config <- list(
     "race"
   ),
 
-  # Version10.2 extension runner controls.
+  # current project extension runner controls.
   # All four refactored extensions are enabled by default, so source("main.R")
   # runs the base NHANES workflow and then the four extension workflows.
-  # Any individual extension can be disabled temporarily with:
-  #   options(v10_run_extension_01_hidden_strength_vbm_msm = FALSE)
-  # or by editing the corresponding flag below.
-  run_version10_extensions = TRUE,
+  # Any individual extension can be disabled by editing the corresponding flag below.
+  run_extensions = TRUE,
   run_extension_01_hidden_strength_vbm_msm = TRUE,
   run_extension_02_vbm_ps_misspecification = TRUE,
   run_extension_03_good_overlap_instability = TRUE,

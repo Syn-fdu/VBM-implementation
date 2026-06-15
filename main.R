@@ -6,18 +6,15 @@
 # ------------------------------------------------------------
 # Robust project-root-aware source loading
 # ------------------------------------------------------------
-# Version10.2 fix:
-#   - works when the zip was extracted with or without an outer folder;
-#   - works when source("path/to/main.R") is called from a parent folder;
-#   - searches child folders such as final_project_version10/ if needed.
+# Supports running from the project root or from a parent folder.
 
-v10_is_project_root <- function(path) {
+is_project_root <- function(path) {
   dir.exists(file.path(path, "functions")) &&
     file.exists(file.path(path, "functions", "config.R")) &&
     file.exists(file.path(path, "main.R"))
 }
 
-v10_source_stack_files <- function() {
+source_stack_files <- function() {
   out <- character(0)
   for (i in seq_len(sys.nframe())) {
     candidate <- tryCatch(sys.frame(i)$ofile, error = function(e) NULL)
@@ -28,7 +25,7 @@ v10_source_stack_files <- function() {
   unique(out)
 }
 
-v10_locate_project_root <- function(anchor_file = NULL) {
+locate_project_root <- function(anchor_file = NULL) {
   candidates <- character(0)
 
   if (!is.null(anchor_file) && length(anchor_file) > 0 && nzchar(anchor_file[1])) {
@@ -38,7 +35,7 @@ v10_locate_project_root <- function(anchor_file = NULL) {
     )
   }
 
-  stack_files <- v10_source_stack_files()
+  stack_files <- source_stack_files()
   if (length(stack_files) > 0) {
     candidates <- c(
       candidates,
@@ -62,7 +59,7 @@ v10_locate_project_root <- function(anchor_file = NULL) {
   for (start in candidates) {
     current <- start
     for (i in seq_len(12)) {
-      if (v10_is_project_root(current)) {
+      if (is_project_root(current)) {
         return(normalizePath(current, winslash = "/", mustWork = FALSE))
       }
       parent <- dirname(current)
@@ -71,14 +68,13 @@ v10_locate_project_root <- function(anchor_file = NULL) {
     }
   }
 
-  # 2) Check common child-folder layout after unzipping.
+  # 2) Check child-folder layouts after unzipping.
   for (start in candidates) {
     if (!dir.exists(start)) next
     child_dirs <- list.dirs(start, recursive = FALSE, full.names = TRUE)
     child_dirs <- c(child_dirs, list.dirs(start, recursive = TRUE, full.names = TRUE))
-    child_dirs <- child_dirs[grepl("final_project|version10|version_10|v10", basename(child_dirs), ignore.case = TRUE)]
     for (child in unique(child_dirs)) {
-      if (v10_is_project_root(child)) {
+      if (is_project_root(child)) {
         return(normalizePath(child, winslash = "/", mustWork = FALSE))
       }
     }
@@ -95,7 +91,7 @@ v10_locate_project_root <- function(anchor_file = NULL) {
   error = function(e) NA_character_
 )
 
-.project_dir <- v10_locate_project_root(.project_file)
+.project_dir <- locate_project_root(.project_file)
 .project_env <- environment()
 
 setwd(.project_dir)
@@ -107,7 +103,7 @@ source_project_file <- function(relative_path) {
       paste0(
         "Required source file missing: ", path,
         "\nProject root detected as: ", .project_dir,
-        "\nPlease make sure the full version10.2 archive was extracted, not only main.R."
+        "\nPlease make sure the full project archive was extracted, not only main.R."
       )
     )
   }
@@ -194,19 +190,19 @@ dir.create(config$output_figures_dir, recursive = TRUE, showWarnings = FALSE)
 dir.create(config$output_tables_dir, recursive = TRUE, showWarnings = FALSE)
 
 if (isTRUE(config$clear_output_before_run)) {
-  old_tables <- list.files(
+  existing_tables <- list.files(
     config$output_tables_dir,
     pattern = "\\.csv$",
     full.names = TRUE
   )
-  old_figures <- list.files(
+  existing_figures <- list.files(
     config$output_figures_dir,
     pattern = "\\.(png|pdf|svg)$",
     full.names = TRUE,
     ignore.case = TRUE
   )
 
-  unlink(c(old_tables, old_figures), force = TRUE)
+  unlink(c(existing_tables, existing_figures), force = TRUE)
 
   cat(
     "Existing output CSV/PNG/PDF/SVG files removed before this run to keep results traceable.\n"
@@ -568,15 +564,15 @@ ggsave(
 # ------------------------------------------------------------
 # Main-program enhanced plots
 # ------------------------------------------------------------
-# This is the enhancedplot auto-launch for the base NHANES main program.
-# It is separate from the four extension enhancedplot scripts.
+# This is the enhanced-plot auto-launch for the base NHANES main program.
+# It is separate from the four extension enhanced plotting scripts.
 if (isTRUE(config$run_main_enhanced_plots)) {
   main_enhanced_output_dir <- config$main_enhanced_output_dir
   if (is.null(main_enhanced_output_dir) || !nzchar(main_enhanced_output_dir)) {
     main_enhanced_output_dir <- file.path("output", "figures_enhanced")
   }
 
-  v10_run_python_plot(
+  run_python_plot(
     project_dir = .project_dir,
     script_relative_path = "scripts/enhanced_plots.py",
     input_dir = config$output_tables_dir,
@@ -591,7 +587,7 @@ if (isTRUE(config$run_main_enhanced_plots)) {
 
 
 # ------------------------------------------------------------
-# Version10.2 root-level extension scripts
+# Root-level extension scripts
 # ------------------------------------------------------------
 # No extensions/ folder is required.  main.R directly sources the four
 # standalone scripts below.  Each script can also be run independently from
@@ -601,7 +597,7 @@ if (isTRUE(config$run_main_enhanced_plots)) {
 #   source("extension_03_good_overlap_instability.R")
 #   source("extension_04_rgm_vbm_msm.R")
 
-run_v10_standalone_extension <- function(flag_name, script_name, extension_id, extension_label) {
+run_standalone_extension <- function(flag_name, script_name, extension_id, extension_label) {
   enabled <- isTRUE(config[[flag_name]])
 
   row <- data.frame(
@@ -615,37 +611,37 @@ run_v10_standalone_extension <- function(flag_name, script_name, extension_id, e
   )
 
   if (enabled) {
-    cat("\n========== Running Version10.2 extension: ", extension_label, " ==========\n", sep = "")
-    .v10_project_dir_from_runner <<- .project_dir
+    cat("\n========== Running extension: ", extension_label, " ==========\n", sep = "")
+    .project_dir_from_runner <<- .project_dir
     source_project_file(script_name)
   } else {
-    cat("Skipping Version10.2 extension ", extension_id, " because ", flag_name, " is FALSE.\n", sep = "")
+    cat("Skipping extension ", extension_id, " because ", flag_name, " is FALSE.\n", sep = "")
   }
 
   row
 }
 
-if (isTRUE(config$run_version10_extensions)) {
-  version10_extension_rows <- list(
-    run_v10_standalone_extension(
+if (isTRUE(config$run_extensions)) {
+  extension_rows <- list(
+    run_standalone_extension(
       flag_name = "run_extension_01_hidden_strength_vbm_msm",
       script_name = "extension_01_hidden_strength_vbm_msm.R",
       extension_id = "01_hidden_strength_vbm_msm",
       extension_label = "Hidden-strength VBM/MSM comparison"
     ),
-    run_v10_standalone_extension(
+    run_standalone_extension(
       flag_name = "run_extension_02_vbm_ps_misspecification",
       script_name = "extension_02_vbm_ps_misspecification.R",
       extension_id = "02_vbm_ps_misspecification",
       extension_label = "VBM under PS model misspecification"
     ),
-    run_v10_standalone_extension(
+    run_standalone_extension(
       flag_name = "run_extension_03_good_overlap_instability",
       script_name = "extension_03_good_overlap_instability.R",
       extension_id = "03_good_overlap_instability",
       extension_label = "Good-overlap denominator instability"
     ),
-    run_v10_standalone_extension(
+    run_standalone_extension(
       flag_name = "run_extension_04_rgm_vbm_msm",
       script_name = "extension_04_rgm_vbm_msm.R",
       extension_id = "04_rgm_vbm_msm",
@@ -653,18 +649,18 @@ if (isTRUE(config$run_version10_extensions)) {
     )
   )
 
-  version10_index_dir <- file.path(.project_dir, "output", "extension_results")
-  dir.create(version10_index_dir, recursive = TRUE, showWarnings = FALSE)
-  version10_index <- do.call(rbind, version10_extension_rows)
+  extension_index_dir <- file.path(.project_dir, "output", "extension_results")
+  dir.create(extension_index_dir, recursive = TRUE, showWarnings = FALSE)
+  extension_index <- do.call(rbind, extension_rows)
   write.csv(
-    version10_index,
-    file.path(version10_index_dir, "extension_index.csv"),
+    extension_index,
+    file.path(extension_index_dir, "extension_index.csv"),
     row.names = FALSE
   )
-  cat("Version10.2 extension index saved to: ",
-      file.path(version10_index_dir, "extension_index.csv"), "\n", sep = "")
+  cat("Extension index saved to: ",
+      file.path(extension_index_dir, "extension_index.csv"), "\n", sep = "")
 } else {
-  cat("Version10.2 extensions are disabled by config$run_version10_extensions.\n")
+  cat("Extensions are disabled by config$run_extensions.\n")
 }
 
 

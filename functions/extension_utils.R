@@ -3,7 +3,7 @@
 # ============================================================
 # Shared helpers used by main.R and the four root-level extension scripts.
 
-v10_source_files <- function(project_dir, files, env = parent.frame()) {
+source_project_files <- function(project_dir, files, env = parent.frame()) {
   for (relative_path in files) {
     path <- file.path(project_dir, relative_path)
     if (!file.exists(path)) {
@@ -14,7 +14,7 @@ v10_source_files <- function(project_dir, files, env = parent.frame()) {
   invisible(TRUE)
 }
 
-v10_clear_output_files <- function(...) {
+clear_output_files <- function(...) {
   dirs <- unlist(list(...), use.names = FALSE)
   for (d in dirs) {
     if (!dir.exists(d)) next
@@ -29,7 +29,7 @@ v10_clear_output_files <- function(...) {
   invisible(TRUE)
 }
 
-v10_prepare_extension_dirs <- function(project_dir, extension_id) {
+prepare_extension_dirs <- function(project_dir, extension_id) {
   base_dir <- file.path(project_dir, "output", "extension_results", extension_id)
   dirs <- list(
     base = base_dir,
@@ -41,7 +41,7 @@ v10_prepare_extension_dirs <- function(project_dir, extension_id) {
   dirs
 }
 
-v10_run_python_plot <- function(project_dir, script_relative_path, input_dir, output_dir, label = "enhanced plot") {
+run_python_plot <- function(project_dir, script_relative_path, input_dir, output_dir, label = "enhanced plot") {
   script_path <- file.path(project_dir, script_relative_path)
 
   if (!file.exists(script_path)) {

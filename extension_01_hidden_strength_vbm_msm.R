@@ -1,25 +1,20 @@
 # ============================================================
-# Version10 extension 01 main script
-# Hidden-strength VBM/MSM comparison
+# Extension 01: Hidden-strength VBM/MSM comparison
 # ============================================================
 
-# This is root-level Version10.2 extension 01; it can be run by main.R or independently.
-# Recommended run:
+# Standalone run:
 #   source("extension_01_hidden_strength_vbm_msm.R")
-# or:
-#   setwd(".../final_project_version7/synthetic_extension")
-#   source("main_synthetic_vbm_msm.R")
 
 # ------------------------------------------------------------
 # Robust project-root detection
 # ------------------------------------------------------------
-v10_is_project_root <- function(path) {
+is_project_root <- function(path) {
   dir.exists(file.path(path, "functions")) &&
     file.exists(file.path(path, "functions", "config.R")) &&
     file.exists(file.path(path, "main.R"))
 }
 
-v10_source_stack_files <- function() {
+source_stack_files <- function() {
   out <- character(0)
   for (i in seq_len(sys.nframe())) {
     candidate <- tryCatch(sys.frame(i)$ofile, error = function(e) NULL)
@@ -30,14 +25,14 @@ v10_source_stack_files <- function() {
   unique(out)
 }
 
-v10_locate_project_root <- function(anchor_file = NULL) {
+locate_project_root <- function(anchor_file = NULL) {
   candidates <- character(0)
 
   if (!is.null(anchor_file) && length(anchor_file) > 0 && nzchar(anchor_file[1])) {
     candidates <- c(candidates, dirname(normalizePath(anchor_file[1], winslash = "/", mustWork = FALSE)))
   }
 
-  stack_files <- v10_source_stack_files()
+  stack_files <- source_stack_files()
   if (length(stack_files) > 0) {
     candidates <- c(candidates, dirname(normalizePath(stack_files, winslash = "/", mustWork = FALSE)))
   }
@@ -48,7 +43,7 @@ v10_locate_project_root <- function(anchor_file = NULL) {
   for (start in candidates) {
     current <- start
     for (i in seq_len(12)) {
-      if (v10_is_project_root(current)) {
+      if (is_project_root(current)) {
         return(normalizePath(current, winslash = "/", mustWork = FALSE))
       }
       parent <- dirname(current)
@@ -60,9 +55,8 @@ v10_locate_project_root <- function(anchor_file = NULL) {
   for (start in candidates) {
     if (!dir.exists(start)) next
     child_dirs <- list.dirs(start, recursive = TRUE, full.names = TRUE)
-    child_dirs <- child_dirs[grepl("final_project|version10|version_10|v10", basename(child_dirs), ignore.case = TRUE)]
     for (child in unique(child_dirs)) {
-      if (v10_is_project_root(child)) {
+      if (is_project_root(child)) {
         return(normalizePath(child, winslash = "/", mustWork = FALSE))
       }
     }
@@ -74,18 +68,18 @@ v10_locate_project_root <- function(anchor_file = NULL) {
   )
 }
 
-v10_detect_project_dir <- function() {
-  if (exists(".v10_project_dir_from_runner")) {
-    return(normalizePath(.v10_project_dir_from_runner, winslash = "/", mustWork = FALSE))
+detect_project_dir <- function() {
+  if (exists(".project_dir_from_runner")) {
+    return(normalizePath(.project_dir_from_runner, winslash = "/", mustWork = FALSE))
   }
   source_file <- tryCatch(
     normalizePath(sys.frame(1)$ofile, winslash = "/", mustWork = FALSE),
     error = function(e) NA_character_
   )
-  v10_locate_project_root(source_file)
+  locate_project_root(source_file)
 }
 
-.project_dir <- v10_detect_project_dir()
+.project_dir <- detect_project_dir()
 
 .project_env <- environment()
 setwd(.project_dir)
@@ -139,7 +133,7 @@ config$weight_truncation <- 0.996
 config$benchmark_weight_truncation <- NA_real_
 
 # Keep synthetic benchmark table focused on the two models requested for
-# Version10 extension 01: VBM benchmark and MSM benchmark across hidden strengths.
+# Extension 01: VBM benchmark and MSM benchmark across hidden strengths.
 config$figure3_include_vbm_corr <- FALSE
 config$figure3_include_qbal <- FALSE
 
@@ -678,19 +672,6 @@ run_one_synthetic_dataset <- function(
     bootstrap_rows = nrow(bootstrap_results),
     stringsAsFactors = FALSE
   )
-
-  # Backward-compatible aliases used by earlier A/B scripts.
-  dataset_summary$oracle_location_IPW_ATT <- ifelse(
-    omitted_variable == "location_region",
-    oracle_att,
-    NA_real_
-  )
-  dataset_summary$oracle_hidden_IPW_ATT <- ifelse(
-    omitted_variable == "hidden_confounder",
-    oracle_att,
-    NA_real_
-  )
-
   write.csv(
     analysis,
     file.path(config$output_tables_dir, paste0(output_prefix, "_analysis_data.csv")),
@@ -944,7 +925,7 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
 
 run_enhanced_hidden_strength_plots <- function(config, project_dir) {
 
-  script_path <- file.path(project_dir, "scripts", "enhancedplot_hidden_strength.py")
+  script_path <- file.path(project_dir, "scripts", "enhanced_plot_hidden_strength.py")
 
   if (!file.exists(script_path)) {
     cat("Skipping enhanced hidden-strength plots because script is missing: ",
@@ -1022,4 +1003,4 @@ cat("\nOutputs saved under: ", config$output_tables_dir, " and ", config$output_
 cat("Standard per-dataset R plots are saved under output/extension_results/01_hidden_strength_vbm_msm/figures/.\n")
 cat("Enhanced Figure 1-style and benchmark plots are saved under output/extension_results/01_hidden_strength_vbm_msm/figures_enhanced/.\n")
 cat("If Python was unavailable during the R run, generate enhanced plots manually with:\n")
-cat("  python scripts/enhancedplot_hidden_strength.py --input output/extension_results/01_hidden_strength_vbm_msm/tables --output output/extension_results/01_hidden_strength_vbm_msm/figures_enhanced\n")
+cat("  python scripts/enhanced_plot_hidden_strength.py --input output/extension_results/01_hidden_strength_vbm_msm/tables --output output/extension_results/01_hidden_strength_vbm_msm/figures_enhanced\n")

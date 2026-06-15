@@ -1,30 +1,17 @@
 # ============================================================
-# Version10 Extension 02:
-# VBM under observed propensity-score model misspecification
+# Extension 02: VBM under propensity-score misspecification
 # ============================================================
 # Standalone run:
 #   source("extension_02_vbm_ps_misspecification.R")
-#
-# Research design:
-#   three targeted simulation scenarios:
-#     1) no confounding + correctly specified PS model;
-#     2) omitted confounding strong enough to threaten the ATT conclusion;
-#     3) no hidden confounding, but deliberately misspecified observed PS model.
-#
-# Main outputs:
-#   - vbm_ps_misspec_factorial_summary.csv
-#   - vbm_ps_misspec_decomposition.csv
-#   - vbm_ps_misspec_bootstrap_curves.csv
-#   - standard and enhanced plots
 # ============================================================
 
-v10_is_project_root <- function(path) {
+is_project_root <- function(path) {
   dir.exists(file.path(path, "functions")) &&
     file.exists(file.path(path, "functions", "config.R")) &&
     file.exists(file.path(path, "main.R"))
 }
 
-v10_source_stack_files <- function() {
+source_stack_files <- function() {
   out <- character(0)
   for (i in seq_len(sys.nframe())) {
     candidate <- tryCatch(sys.frame(i)$ofile, error = function(e) NULL)
@@ -35,14 +22,14 @@ v10_source_stack_files <- function() {
   unique(out)
 }
 
-v10_locate_project_root <- function(anchor_file = NULL) {
+locate_project_root <- function(anchor_file = NULL) {
   candidates <- character(0)
 
   if (!is.null(anchor_file) && length(anchor_file) > 0 && nzchar(anchor_file[1])) {
     candidates <- c(candidates, dirname(normalizePath(anchor_file[1], winslash = "/", mustWork = FALSE)))
   }
 
-  stack_files <- v10_source_stack_files()
+  stack_files <- source_stack_files()
   if (length(stack_files) > 0) {
     candidates <- c(candidates, dirname(normalizePath(stack_files, winslash = "/", mustWork = FALSE)))
   }
@@ -53,7 +40,7 @@ v10_locate_project_root <- function(anchor_file = NULL) {
   for (start in candidates) {
     current <- start
     for (i in seq_len(12)) {
-      if (v10_is_project_root(current)) {
+      if (is_project_root(current)) {
         return(normalizePath(current, winslash = "/", mustWork = FALSE))
       }
       parent <- dirname(current)
@@ -65,9 +52,8 @@ v10_locate_project_root <- function(anchor_file = NULL) {
   for (start in candidates) {
     if (!dir.exists(start)) next
     child_dirs <- list.dirs(start, recursive = TRUE, full.names = TRUE)
-    child_dirs <- child_dirs[grepl("final_project|version10|version_10|v10", basename(child_dirs), ignore.case = TRUE)]
     for (child in unique(child_dirs)) {
-      if (v10_is_project_root(child)) {
+      if (is_project_root(child)) {
         return(normalizePath(child, winslash = "/", mustWork = FALSE))
       }
     }
@@ -79,25 +65,25 @@ v10_locate_project_root <- function(anchor_file = NULL) {
   )
 }
 
-v10_detect_project_dir <- function() {
-  if (exists(".v10_project_dir_from_runner")) {
-    return(normalizePath(.v10_project_dir_from_runner, winslash = "/", mustWork = FALSE))
+detect_project_dir <- function() {
+  if (exists(".project_dir_from_runner")) {
+    return(normalizePath(.project_dir_from_runner, winslash = "/", mustWork = FALSE))
   }
   source_file <- tryCatch(
     normalizePath(sys.frame(1)$ofile, winslash = "/", mustWork = FALSE),
     error = function(e) NA_character_
   )
-  v10_locate_project_root(source_file)
+  locate_project_root(source_file)
 }
 
-.project_dir <- v10_detect_project_dir()
+.project_dir <- detect_project_dir()
 
 
 .project_env <- environment()
 setwd(.project_dir)
 
 source(file.path(.project_dir, "functions", "extension_utils.R"), local = .project_env)
-v10_source_files(
+source_project_files(
   project_dir = .project_dir,
   files = c(
     "functions/config.R",
@@ -111,8 +97,8 @@ v10_source_files(
   env = .project_env
 )
 
-dirs <- v10_prepare_extension_dirs(.project_dir, "02_vbm_ps_misspecification")
-v10_clear_output_files(dirs$tables, dirs$figures, dirs$enhanced)
+dirs <- prepare_extension_dirs(.project_dir, "02_vbm_ps_misspecification")
+clear_output_files(dirs$tables, dirs$figures, dirs$enhanced)
 
 config$seed <- 4210
 config$output_figures_dir <- file.path("output", "extension_results", "02_vbm_ps_misspecification", "figures")
@@ -616,9 +602,9 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
   ggplot2::ggsave(file.path(dirs$figures, "vbm_ps_misspec_att_distortion.png"), p_att, width = 9, height = 5.5, dpi = 300)
 }
 
-v10_run_python_plot(
+run_python_plot(
   project_dir = .project_dir,
-  script_relative_path = "scripts/enhancedplot_vbm_ps_misspecification.py",
+  script_relative_path = "scripts/enhanced_plot_vbm_ps_misspecification.py",
   input_dir = dirs$tables,
   output_dir = dirs$enhanced,
   label = "Extension 02 enhanced plots"

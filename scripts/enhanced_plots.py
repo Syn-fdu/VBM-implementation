@@ -16,7 +16,7 @@ Usage:
         --input output/tables \
         --output output/figures_enhanced
 
-In version10.2 this script is launched automatically by main.R when
+In current project this script is launched automatically by main.R when
 config$run_main_enhanced_plots is TRUE.
 """
 

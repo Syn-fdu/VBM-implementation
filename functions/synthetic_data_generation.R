@@ -161,7 +161,7 @@ location_outcome_effect <- function(location_region, strength = 0) {
 # comparing VBM and MSM detection across datasets; it is not used in the DGP.
 
 synthetic_design_grid <- function() {
-  # Version10 hidden-strength grid:
+  # Project hidden-strength grid:
   # every non-baseline scenario deliberately omits the same hidden variable.
   # The only systematic change across rows is hidden treatment/outcome strength.
   data.frame(
