@@ -1,7 +1,6 @@
 # ============================================================
 # Version 10.2 active extension utilities
 # ============================================================
-# Shared helpers used by main.R and the four root-level extension scripts.
 
 source_project_files <- function(project_dir, files, env = parent.frame()) {
   for (relative_path in files) {

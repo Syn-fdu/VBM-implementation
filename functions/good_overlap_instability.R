@@ -1,7 +1,6 @@
 # ============================================================
-# Current project extension utilities: instability under good overlap
+# Current extension utilities: instability under good overlap
 # ============================================================
-# Additive only: these functions do not alter the main VBM/MSM/RGM workflow.
 
 good_overlap_sigmoid <- function(x) {
   1 / (1 + exp(-pmax(pmin(x, 35), -35)))

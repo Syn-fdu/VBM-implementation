@@ -248,7 +248,6 @@ def main() -> None:
     if response_path.exists():
         response = pd.read_csv(response_path)
     else:
-        # Fallback for alternate R output schemas.
         response = summary.copy()
         response["VBM_response"] = "VBM response table was not produced by the R script."
     make_response_table(response, output_dir)

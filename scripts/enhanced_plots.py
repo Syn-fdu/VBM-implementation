@@ -70,7 +70,6 @@ def read_csv(input_dir: Path, name: str) -> pd.DataFrame:
     return pd.read_csv(path)
 
 
-
 def metric_value(final_results: pd.DataFrame, metric: str, default=np.nan) -> float:
     if "metric" not in final_results.columns or "current_version" not in final_results.columns:
         return default
@@ -244,7 +243,6 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
 
     fig, ax = plt.subplots(figsize=(14.5, 4.7))
 
-    # ---------------- Main plot ----------------
     ci_color = "#8CB6D8"
     point_color = "#1F77B4"
     point_interval_color = "#3C8DC7"
@@ -376,7 +374,6 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
         columnspacing=1.7,
     )
 
-    # R2* annotation inside the main panel.
     if np.isfinite(r2_star):
         ax.annotate(
             rf"$R^{{2*}}$ = {r2_star:.2f}",
@@ -466,7 +463,6 @@ def make_figure1(input_dir: Path, output_dir: Path) -> None:
             fontsize=8.9,
         )
 
-    # Key benchmark labels inside the main panel.
     preferred_positions = {
         "income": {"dx": -0.012, "dy": 1.42, "anchor_dy": 1.18, "ha": "right"},
         "race": {"dx": 0.005, "dy": 1.26, "anchor_dy": 0.94, "ha": "left"},
@@ -736,10 +732,7 @@ def make_figure3(input_dir: Path, output_dir: Path) -> None:
     save_figures(fig, output_dir, "figure3_benchmark_paper_style")
 
 
-
-
 # ============================================================
-# Main
 # ============================================================
 def main() -> None:
     parser = argparse.ArgumentParser()

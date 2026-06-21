@@ -107,7 +107,6 @@ def interpolate_curve(df: pd.DataFrame, xs: np.ndarray) -> tuple[np.ndarray, np.
     d["upper"] = pd.to_numeric(d["upper"], errors="coerce")
     d = d.replace([np.inf, -np.inf], np.nan).dropna().sort_values("R2")
 
-    # If coarse and fine rows contain the same R², keep the last one after sorting.
     d = d.groupby("R2", as_index=False).last()
 
     return (
@@ -318,7 +317,6 @@ def make_synthetic_figure1(
     save_figures(fig, output_dir, f"synthetic_figure1_vbm_paper_style_{safe_stem(dataset_id)}")
 
 
-
 def make_synthetic_benchmark_comparison(
     input_dir: Path,
     output_dir: Path,
@@ -414,7 +412,6 @@ def make_synthetic_benchmark_comparison(
     fig.subplots_adjust(bottom=0.42, top=0.90)
 
     save_figures(fig, output_dir, f"synthetic_benchmark_vbm_msm_paper_style_{safe_stem(dataset_id)}")
-
 
 
 def make_detection_power_plot(input_dir: Path, output_dir: Path, summary: pd.DataFrame) -> None:

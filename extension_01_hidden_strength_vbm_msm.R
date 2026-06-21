@@ -167,8 +167,6 @@ config$benchmark_plot_labels <- c(
   hidden_confounder = "Hidden confounder (oracle)"
 )
 
-# Remove stale synthetic outputs only.  The main NHANES output folders are not
-# touched, which keeps source("main.R") isolated from the extension workflow.
 clear_synthetic_outputs <- function(config, project_dir) {
   dirs <- c(
     file.path(project_dir, config$output_figures_dir),

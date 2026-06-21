@@ -4,7 +4,6 @@
 # ============================================================
 #
 # This file is used only by extension_01_hidden_strength_vbm_msm.R.
-# It does not change the NHANES reproduction pipeline in main.R.
 # The generated datasets form an ordered omitted-confounding stress test,
 # ranging from no hidden confounding to hidden confounding strong enough
 # to plausibly overturn the observed-only conclusion.

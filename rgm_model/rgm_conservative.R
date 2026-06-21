@@ -1,5 +1,4 @@
 # ============================================================
-# RGM conservative range-bound calculations for the integrated main.R workflow
 # ============================================================
 #
 # The conservative RGM model uses the total-variation/L1 sensitivity
@@ -13,7 +12,6 @@
 #
 #   Bias_RGM(T) = T * (Y_U - Y_L).
 #
-# This file deliberately contains only the conservative closed-form/range-bound
 # calculations.  It does not search for T*.  The sharp finite-sample RGM model
 # is implemented separately in rgm_model/rgm_sharp.R.
 # ============================================================

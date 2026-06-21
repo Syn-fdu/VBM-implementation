@@ -1,5 +1,4 @@
 # ============================================================
-# RGM finite-sample sharp TV/L1 calculations for the integrated main.R workflow
 # ============================================================
 #
 # For controls, let p_i = w_i / sum_j w_j.  The sharp finite-sample RGM bound
@@ -7,7 +6,6 @@
 #
 #   q_i >= 0,  sum_i q_i = 1,  1/2 * sum_i |q_i - p_i| <= T.
 #
-# The maximal control mean is obtained by moving at most T units of probability
 # mass from the lowest outcomes to the highest outcomes.  The minimal control
 # mean moves mass in the opposite direction.
 # ============================================================

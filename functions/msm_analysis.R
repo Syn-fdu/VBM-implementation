@@ -13,8 +13,6 @@
 #   max/min_a  sum_i a_i w_i Y_i / sum_i a_i w_i
 #   subject to a_i in [1/Gamma, Gamma].
 #
-# The optimum is obtained by assigning the largest multiplier to one tail
-# of the control outcomes and the smallest multiplier to the other tail.
 # ============================================================
 
 normalize_msm_weights <- function(w) {

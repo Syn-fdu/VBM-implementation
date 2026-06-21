@@ -10,24 +10,19 @@ config <- list(
   output_tables_dir = "output/tables",
   clear_output_before_run = TRUE,
 
-  # Main-program enhanced plotting.
-  # Enabled by default so source("main.R") automatically generates
-  # polished enhanced versions of the base NHANES figures.
+  # formatted enhanced versions of the base NHANES figures.
   run_main_enhanced_plots = TRUE,
   main_enhanced_output_dir = "output/figures_enhanced",
 
   # Reproducibility
   seed = 2024,
 
-  # Propensity score and main ATT weights
   ps_clip_lower = 0.01,
   ps_clip_upper = 0.99,
   weight_truncation = 0.996,
 
   # Propensity-score covariate encoding controls
   # Numeric-like high-cardinality fields are parsed as numeric when possible;
-  # categorical fields remain factors. Encoding diagnostics are printed by
-  # main.R so the fitted PS model can be audited without writing extra files.
   ps_numeric_parse_min_fraction = 0.8,
   ps_high_cardinality_threshold = 15,
   ps_max_factor_levels = 10,
@@ -43,7 +38,6 @@ config <- list(
   R2_fine_step = 0.01,
   R2_fine_window = 0.05,
 
-  # Bootstrap settings for the main VBM R2* search.  One bootstrap pool is
   # generated per search stage and reused across all R2 values in that stage.
   coarse_B = 500,
   fine_B = 1000,
@@ -118,7 +112,6 @@ config <- list(
   msm_benchmark_bootstrap_B = 1000,
   msm_benchmark_bootstrap_seed_offset = 9100,
 
-  # Fallback single-term benchmark list used only when benchmark_groups is unavailable.
   benchmark_vars = c(
     "gender",
     "age",
@@ -130,8 +123,7 @@ config <- list(
     "race"
   ),
 
-  # current project extension runner controls.
-  # All four refactored extensions are enabled by default, so source("main.R")
+  # extension runner controls.
   # runs the base NHANES workflow and then the four extension workflows.
   # Any individual extension can be disabled by editing the corresponding flag below.
   run_extensions = TRUE,

@@ -1,9 +1,6 @@
 # ============================================================
-# RGM benchmark calculations and MSM/VBM/RGM comparison plot for the integrated main.R workflow
 # ============================================================
 #
-# This file contains benchmark-specific RGM code used by the optional
-# integrated extension block in main.R.  It reuses the original project's
 # VBM/MSM benchmark functions and adds two RGM rows:
 #   - RGM-sharp: finite-sample TV/L1 sharp bound
 #   - RGM-conservative: closed-form range bound

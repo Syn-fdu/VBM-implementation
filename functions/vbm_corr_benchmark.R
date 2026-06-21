@@ -2,8 +2,6 @@
 # VBM benchmark extension: outcome-correlation-calibrated bounds
 # ============================================================
 #
-# This file contains only the Figure 3 benchmark variant
-# "VBM, w/ Corr.".  The base VBM bound remains in
 # vbm_bounds.R; this extension replaces the conservative
 # correlation factor with an observed-covariate benchmark correlation.
 

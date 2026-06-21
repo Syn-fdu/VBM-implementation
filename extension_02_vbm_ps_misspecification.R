@@ -104,7 +104,6 @@ config$seed <- 4210
 config$output_figures_dir <- file.path("output", "extension_results", "02_vbm_ps_misspecification", "figures")
 config$output_tables_dir <- file.path("output", "extension_results", "02_vbm_ps_misspecification", "tables")
 
-# Keep the extension fast enough to run automatically from main.R.
 config$R2_min <- 0
 config$R2_max <- 0.90
 config$R2_coarse_step <- 0.10
@@ -133,7 +132,6 @@ opm_intercept <- function(eta, target_rate = 0.25) {
 
 # Generate one simulated dataset.
 #
-# Revised design for the paper claim:
 #   1) no_disturbance:
 #      no hidden confounder enters treatment or outcome, and the fitted
 #      observed PS model is the true observed PS model.  The treatment effect
@@ -148,7 +146,6 @@ opm_intercept <- function(eta, target_rate = 0.25) {
 #      enough to overturn the conclusion is plausible/active.
 #
 #   3) model_misspecification_only:
-#      there is no hidden confounder.  The true treatment mechanism contains
 #      observed nonlinearities/interactions that are correlated with the
 #      outcome, but the analysis intentionally fits a linear PS model.  This
 #      lets model error produce a VBM response close to the confounding row,

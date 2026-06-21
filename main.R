@@ -1,5 +1,4 @@
 # ============================================================
-# Main script
 # Variance-based sensitivity analysis with optional integrated RGM extension
 # ============================================================
 
@@ -294,7 +293,6 @@ cat("ATT =", tau_hat, "\n")
 # ------------------------------------------------------------
 # Variance-based bootstrap analysis
 # ------------------------------------------------------------
-# The retained ATT-R2* curve uses percentile-bootstrap inference.
 
 bootstrap_output <- find_R2_bootstrap(
   data = analysis,
@@ -338,7 +336,6 @@ cat("Bootstrap R²* =", R2_boot, "\n")
 # ------------------------------------------------------------
 # Covariate benchmark comparison
 # ------------------------------------------------------------
-# Figure 3 benchmark output contains four model rows per covariate:
 #   MSM, MSM (Qbal), VBM, and VBM, w/ Corr.
 
 benchmark_output <- run_covariate_benchmarks(
@@ -363,7 +360,6 @@ if (is.null(msm_benchmark_bootstrap_curve)) {
 # ------------------------------------------------------------
 # Save concise tables
 # ------------------------------------------------------------
-# Retained outputs cover bootstrap VBM inference and four-model benchmark data.
 
 unweighted_att <- mean(analysis$Y[analysis$Z == 1]) -
   mean(analysis$Y[analysis$Z == 0])
@@ -530,7 +526,6 @@ write.csv(
 )
 
 # ------------------------------------------------------------
-# Generate and save retained plots
 # ------------------------------------------------------------
 
 p1 <- plot_bootstrap_curve(
@@ -562,9 +557,7 @@ ggsave(
 
 
 # ------------------------------------------------------------
-# Main-program enhanced plots
 # ------------------------------------------------------------
-# This is the enhanced-plot auto-launch for the base NHANES main program.
 # It is separate from the four extension enhanced plotting scripts.
 if (isTRUE(config$run_main_enhanced_plots)) {
   main_enhanced_output_dir <- config$main_enhanced_output_dir
@@ -584,12 +577,9 @@ if (isTRUE(config$run_main_enhanced_plots)) {
 }
 
 
-
-
 # ------------------------------------------------------------
 # Root-level extension scripts
 # ------------------------------------------------------------
-# No extensions/ folder is required.  main.R directly sources the four
 # standalone scripts below.  Each script can also be run independently from
 # the project root:
 #   source("extension_01_hidden_strength_vbm_msm.R")

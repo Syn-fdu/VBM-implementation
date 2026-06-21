@@ -1,8 +1,0 @@
-"R2","lower","upper","n_valid","B_requested","required_valid","bootstrap_pool","benchmark_bootstrap_type"
-0,1.8726747945825,2.32627220045838,1000,1000,800,"shared_fixed_benchmark_R2_pool","fixed_original_sample_R2"
-0.00180529693672137,1.80490328788117,2.39710221882744,1000,1000,800,"shared_fixed_benchmark_R2_pool","fixed_original_sample_R2"
-0.00200190517603967,1.80141002621061,2.40082829205239,1000,1000,800,"shared_fixed_benchmark_R2_pool","fixed_original_sample_R2"
-0.0308750894022556,1.57544249582228,2.63117515530589,1000,1000,800,"shared_fixed_benchmark_R2_pool","fixed_original_sample_R2"
-0.171671377697763,1.06723571455673,3.15313024191269,1000,1000,800,"shared_fixed_benchmark_R2_pool","fixed_original_sample_R2"
-0.209661623021431,0.957712254488872,3.25864384109366,1000,1000,800,"shared_fixed_benchmark_R2_pool","fixed_original_sample_R2"
-0.240015505814385,0.868405981903803,3.34840282874325,1000,1000,800,"shared_fixed_benchmark_R2_pool","fixed_original_sample_R2"

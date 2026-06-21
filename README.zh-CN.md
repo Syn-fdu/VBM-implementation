@@ -37,7 +37,6 @@
 
 ```text
 .
-├── main.R
 ├── setup.R
 ├── extension_01_hidden_strength_vbm_msm.R
 ├── extension_02_vbm_ps_misspecification.R
@@ -59,10 +58,8 @@
 
 ```r
 source("setup.R")   # 可选：安装缺失的 R 包
-source("main.R")    # 主分析 + enhanced plots + 四个 extensions
 ```
 
-默认情况下，`main.R` 会依次运行：
 
 1. 主程序 NHANES 分析；
 2. `scripts/enhanced_plots.py`，生成主程序 enhanced figures；
@@ -78,7 +75,6 @@ output/figures_enhanced/
 output/extension_results/
 ```
 
-生成结果默认被 Git 忽略。重新运行 `source("main.R")` 即可复现全部表格和图片。
 
 ---
 
@@ -104,7 +100,6 @@ functions/config.R
 主要默认开关包括：
 
 ```r
-run_main_enhanced_plots = TRUE
 run_extensions = TRUE
 run_extension_01_hidden_strength_vbm_msm = TRUE
 run_extension_02_vbm_ps_misspecification = TRUE
@@ -152,8 +147,6 @@ Sensitivity analysis 的作用不是消除所有隐藏假设，而是让隐藏�
 - **RGM / L1-TV**：衡量隐藏混杂最多能移动多少 probability mass。
 
 NHANES 复现部分验证了主结果与论文接近；四个 extension 进一步说明，VBM 的解释依赖于 propensity-score model 的设定、权重方差的稳定性，以及我们选择哪一种 norm 来刻画 hidden perturbation。
-
-
 
 
 ---

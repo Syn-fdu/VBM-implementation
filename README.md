@@ -2,19 +2,16 @@
 
 [中文说明](README.zh-CN.md) | English
 
-This repository contains a reproducible R/Python project on **variance-based sensitivity analysis (VBM)** for hidden confounding. The main application studies the NHANES fish/shellfish consumption and blood-mercury example discussed in Huang & Pimentel (Biometrika, 2025).
 
 The guiding question is:
 
 > How strong would unobserved confounding have to be to overturn the conclusion that high fish/shellfish consumption is associated with higher blood mercury?
 
-The repository reproduces the main VBM/MSM analysis and adds four extensions that stress-test different hidden-confounding stories.
 
 ---
 
 ## What is included
 
-The main workflow:
 
 1. loads the NHANES fish-consumption data;
 2. estimates the ATT using inverse probability weighting;
@@ -37,7 +34,6 @@ The four extension scripts are:
 
 ```text
 .
-├── main.R
 ├── setup.R
 ├── extension_01_hidden_strength_vbm_msm.R
 ├── extension_02_vbm_ps_misspecification.R
@@ -59,13 +55,9 @@ Clone the repository, open the project folder in R, and run:
 
 ```r
 source("setup.R")   # optional: install missing R packages
-source("main.R")    # main analysis + enhanced plots + all extensions
 ```
 
-By default, `main.R` runs:
 
-1. the main NHANES analysis;
-2. `scripts/enhanced_plots.py` for main enhanced figures;
 3. all four extension scripts;
 4. each extension's own enhanced plotting script.
 
@@ -78,7 +70,6 @@ output/figures_enhanced/
 output/extension_results/
 ```
 
-Generated outputs are ignored by Git by default. Re-run `source("main.R")` to recreate them.
 
 ---
 
@@ -104,7 +95,6 @@ functions/config.R
 Important defaults:
 
 ```r
-run_main_enhanced_plots = TRUE
 run_extensions = TRUE
 run_extension_01_hidden_strength_vbm_msm = TRUE
 run_extension_02_vbm_ps_misspecification = TRUE
@@ -143,18 +133,11 @@ pip install pandas numpy matplotlib
 
 ---
 
-## Main idea
 
 Sensitivity analysis makes hidden assumptions visible. This project compares three ways to describe hidden confounding:
 
-- **MSM / L-infinity**: protects against the worst individual weight distortion.
 - **VBM / L2-R2**: measures systematic residual weight variation.
 - **RGM / L1-TV**: measures how much probability mass hidden confounding can move.
-
-The NHANES replication checks that the main results are close to the paper, while the extensions show that VBM's interpretation depends on propensity-score specification, stable weight variance, and the norm used to measure hidden perturbations.
-
-
-
 
 
 ---

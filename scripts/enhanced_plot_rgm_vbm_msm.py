@@ -5,7 +5,7 @@
 Enhanced plots for Extension 04:
 RGM model exploration and VBM/MSM/RGM comparison.
 
-This script produces report-ready figures:
+This revision focuses on figures:
 1. Flatter layout.
 2. Tighter within-covariate spacing.
 3. Calmer custom colors.
@@ -38,7 +38,6 @@ plt.rcParams.update({
 })
 
 PALETTE = {
-    # Muted, paper-like palette aligned with the main benchmark figures.
     "MSM": "#D9992B",              # muted ochre
     "VBM": "#4C78A8",              # muted blue
     "RGM-sharp": "#3F3B7A",        # muted indigo
@@ -278,7 +277,6 @@ def plot_benchmark_comparison(benchmark: pd.DataFrame, output_dir: Path) -> None
     existing = list(dict.fromkeys(usable["variable"].astype(str)))
     variables = [v for v in paper_order if v in existing] + [v for v in existing if v not in paper_order]
 
-    # Tighter within-covariate spacing than the coarser T-grid step.
     # Old offsets were approximately [-0.24, -0.08, 0.08, 0.24].
     # New offsets make the four intervals read as one compact cluster.
     offsets = {
@@ -304,7 +302,6 @@ def plot_benchmark_comparison(benchmark: pd.DataFrame, output_dir: Path) -> None
         lower = pd.to_numeric(d["lower"], errors="coerce").to_numpy(dtype=float)
         upper = pd.to_numeric(d["upper"], errors="coerce").to_numpy(dtype=float)
 
-        # Use tau_hat when available; otherwise keep midpoint.
         if "tau_hat" in d.columns:
             y = pd.to_numeric(d["tau_hat"], errors="coerce").to_numpy(dtype=float)
             if np.any(~np.isfinite(y)):
@@ -401,7 +398,6 @@ def write_method_table(method: pd.DataFrame, output_dir: Path) -> None:
 
 
 # ============================================================
-# Main
 # ============================================================
 def main() -> None:
     parser = argparse.ArgumentParser()

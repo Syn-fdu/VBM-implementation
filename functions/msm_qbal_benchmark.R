@@ -2,8 +2,6 @@
 # MSM benchmark extension: quantile-ratio Qbal proxy
 # ============================================================
 #
-# This file contains only the Figure 3 benchmark variant "MSM (Qbal)".
-# The standard MSM bound remains in msm_analysis.R.  The Qbal row keeps
 # the benchmark Gamma reported for MSM and computes the interval at an
 # effective Gamma based on a high quantile of the full-vs-reduced log-ratio.
 
